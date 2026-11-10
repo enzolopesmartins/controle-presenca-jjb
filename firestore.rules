@@ -1,0 +1,86 @@
+rules_version = '2';
+
+// Só o professor (quem tem documento em professores/{uid}) lê ou grava alguma coisa.
+// Ninguém apaga turmas, alunos, ciclos ou presenças pelo site. Se precisar, faça pelo console.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() {
+      return request.auth != null;
+    }
+
+    function ehProfessor() {
+      return logado() &&
+        exists(/databases/$(database)/documents/professores/$(request.auth.uid));
+    }
+
+    function novo() {
+      return request.resource.data;
+    }
+
+    function textoOk(t, max) {
+      return t is string && t.size() > 0 && t.size() <= max;
+    }
+
+    function dataOk(d) {
+      return d is string && d.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    // ID no formato AAAAMMDD, igual à data do documento
+    function idDaData(id, d) {
+      return dataOk(d) && id == d.replace('-', '');
+    }
+
+    match /professores/{uid} {
+      allow read: if logado() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /turmas/{id} {
+      allow read: if ehProfessor();
+      allow create, update: if ehProfessor() && textoOk(novo().nome, 60) && novo().ativa is bool;
+      allow delete: if false;
+    }
+
+    match /config/{id} {
+      allow read: if ehProfessor();
+      allow create, update: if ehProfessor() && id == 'aulas' &&
+        novo().diasPadrao is list && novo().diasPadrao.size() <= 7 &&
+        novo().diasPadrao.hasOnly([0, 1, 2, 3, 4, 5, 6]);
+      allow delete: if false;
+    }
+
+    // Exceções aos dias padrão: dia extra ou aula cancelada
+    match /diasAula/{id} {
+      allow read, delete: if ehProfessor();
+      allow create, update: if ehProfessor() && idDaData(id, novo().data) &&
+        novo().tipo in ['extra', 'cancelada'] &&
+        (!('motivo' in novo()) || (novo().motivo is string && novo().motivo.size() <= 200));
+    }
+
+    match /alunos/{id} {
+      allow read: if ehProfessor();
+      allow create, update: if ehProfessor() && textoOk(novo().nome, 80) &&
+        novo().ativo is bool && novo().turmaId is string && dataOk(novo().entrada);
+      allow delete: if false;
+    }
+
+    match /ciclos/{id} {
+      allow read: if ehProfessor();
+      allow create, update: if ehProfessor() && textoOk(novo().nome, 60) &&
+        dataOk(novo().inicio) && dataOk(novo().fim) && novo().inicio <= novo().fim &&
+        novo().limiteFaltas is int && novo().limiteFaltas >= 1 && novo().limiteFaltas <= 100 &&
+        novo().ativo is bool;
+      allow delete: if false;
+    }
+
+    // Um documento por aula: registros = { idDoAluno: 'presente' | 'falta' | 'justificada' }
+    match /presencas/{id} {
+      allow read: if ehProfessor();
+      allow create, update: if ehProfessor() && idDaData(id, novo().data) &&
+        novo().registros is map &&
+        novo().registros.values().hasOnly(['presente', 'falta', 'justificada']);
+      allow delete: if false;
+    }
+  }
+}

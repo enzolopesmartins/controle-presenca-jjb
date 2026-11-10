@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "controle-presenca-jjb"
+  },
+  "targets": {
+    "controle-presenca-jjb": {
+      "hosting": {
+        "principal": [
+          "controlepresencajjb"
+        ]
+      }
+    }
+  }
+}

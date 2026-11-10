@@ -1,0 +1,23 @@
+{
+  "name": "controle-presenca-jjb",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "dev:emulador": "vite --mode emulador",
+    "emulador": "firebase emulators:start --only auth,firestore --project demo-presenca",
+    "emulador:dados": "node scripts/dados-iniciais.mjs",
+    "testar": "node --test testes/relatorio.test.mjs",
+    "testar:regras": "firebase emulators:exec --only firestore --project demo-presenca \"node --test testes/regras.test.mjs\"",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "vite": "^7.3.8"
+  },
+  "dependencies": {
+    "firebase": "^12.19.0"
+  }
+}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#14213d" />
+    <!-- Site particular do professor: o Google não mostra -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="apple-mobile-web-app-title" content="Presença JJ" />
+    <meta name="application-name" content="Presença JJ" />
+    <link rel="icon" href="/icone.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icone-180.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <title>Controle de Presença | Jiu-jitsu</title>
+  </head>
+  <body>
+    <header class="topo">
+      <a href="#/" class="marca">Presença JJ</a>
+      <span class="topo-data" id="topo-data"></span>
+    </header>
+    <main id="app"><p class="carregando">Carregando…</p></main>
+    <nav class="barra" id="barra" hidden>
+      <a href="#/" data-aba=""><span aria-hidden="true">⌂</span>Início</a>
+      <a href="#/chamada" data-aba="chamada"><span aria-hidden="true">✓</span>Chamada</a>
+      <a href="#/alunos" data-aba="alunos"><span aria-hidden="true">☺</span>Alunos</a>
+      <a href="#/relatorio" data-aba="relatorio"><span aria-hidden="true">▦</span>Relatório</a>
+      <a href="#/mais" data-aba="mais"><span aria-hidden="true">≡</span>Mais</a>
+    </nav>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
