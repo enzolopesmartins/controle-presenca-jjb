@@ -14,7 +14,14 @@ export function telaMais({ professor }) {
       <p class="suave pequeno">Em celular dos outros, toque em Sair no fim.</p>
       <button type="button" class="botao secundario" id="sair">Sair</button>
     </section>
-    <p class="assinatura">Desenvolvido por Enzo Lopes</p>`;
+    <footer class="rodape-mais">
+      <img src="/icone.svg" alt="" width="44" height="44" />
+      <strong>Projeto MCC Jiu-jitsu</strong>
+      <span>Controle de presença</span>
+      <span class="rodape-linha" aria-hidden="true"></span>
+      <span class="rodape-autor">Desenvolvido por <b>Enzo Lopes</b></span>
+      <small>© ${new Date().getFullYear()}</small>
+    </footer>`;
   document.getElementById('sair').addEventListener('click', async () => {
     if (await confirmar('Sair do site?', 'Para entrar de novo, use o e-mail e a senha.', { sim: 'Sair' })) sair();
   });

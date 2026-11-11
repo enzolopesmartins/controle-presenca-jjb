@@ -426,5 +426,17 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 .lista-avisos .av-amarelo { background: var(--amarelo-linha); border-color: #e0b100; }
 .lista-avisos li span:last-child { white-space: nowrap; }
 
-/* Assinatura no fim da tela Mais */
-.assinatura { text-align: center; color: #9aa0aa; font-size: .85rem; letter-spacing: .02em; margin: 28px 0 8px; }
+/* Rodapé da tela Mais, com a assinatura */
+.rodape-mais {
+  margin: 32px 0 8px; padding: 24px 16px 18px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: linear-gradient(160deg, var(--marca), var(--marca-2)); color: #fff;
+  border-radius: 16px; box-shadow: 0 8px 24px rgba(20, 33, 61, .25);
+}
+.rodape-mais img { border-radius: 12px; margin-bottom: 8px; box-shadow: 0 0 0 3px rgba(255, 255, 255, .2); }
+.rodape-mais strong { font-size: 1.1rem; letter-spacing: .02em; }
+.rodape-mais span { font-size: .88rem; color: rgba(255, 255, 255, .75); }
+.rodape-mais .rodape-linha { width: 48px; height: 2px; background: rgba(255, 255, 255, .35); border-radius: 2px; margin: 10px 0 6px; }
+.rodape-mais .rodape-autor { color: #fff; font-size: .95rem; }
+.rodape-autor b { color: #ffd166; font-weight: 800; }
+.rodape-mais small { color: rgba(255, 255, 255, .55); font-size: .75rem; margin-top: 2px; }
