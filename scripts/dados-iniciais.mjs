@@ -27,7 +27,12 @@ const somar = (iso, n) => {
   return new Date(Date.UTC(a, m - 1, d + n)).toISOString().slice(0, 10);
 };
 const inicio = somar(hoje.slice(0, 8) + '01', -31).slice(0, 8) + '01'; // começo do mês passado
-const nomes = ['Ana', 'Bruno', 'Caio', 'Duda', 'Enzo', 'Fernanda', 'Gabriel', 'Helena', 'Igor', 'Julia', 'Kaua', 'Laura'];
+const nomes = ['Ana Beatriz Souza', 'Bruno Henrique Castro', 'Caio', 'Duda', 'Enzo Gabriel Rocha',
+  'Fernanda Lima', 'Gabriel', 'Helena Cristina dos Santos Pereira', 'Igor', 'Julia', 'Kaua', 'Laura',
+  'Lucas Matheus', 'Manuela', 'Nicolas Ferreira', 'Olivia', 'Pedro Henrique Alves Martins', 'Rafaela',
+  'Samuel', 'Sofia Vitória', 'Thiago', 'Valentina', 'Vitor Hugo', 'Yasmin Carolina', 'Arthur',
+  'Beatriz', 'Cauã Miguel', 'Davi Lucas', 'Eloá', 'Felipe', 'Giovanna', 'Heitor', 'Isabela', 'João Miguel',
+  'Lara', 'Lorenzo', 'Maria Clara', 'Miguel', 'Pietra', 'Ravi'];
 
 await env.withSecurityRulesDisabled(async (c) => {
   const db = c.firestore();
@@ -52,6 +57,7 @@ await env.withSecurityRulesDisabled(async (c) => {
     const registros = {};
     nomes.forEach((_, i) => {
       if (i === 11 && d < somar(inicio, 20)) return;
+      if (i === 39) return; // um sem marcar
       registros[`a${i}`] = (i + n) % 7 === 0 || (i === 3 && n % 2) ? 'falta'
         : (i * n) % 11 === 5 ? 'justificada' : 'presente';
     });

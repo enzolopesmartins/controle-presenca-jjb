@@ -73,6 +73,9 @@ export function janela(html, { aoFechar } = {}) {
     if (ev.target === d || ev.target.closest('[data-fechar]')) d.close();
   });
   d.showModal();
+  // Abre sempre no topo (o navegador rola até o primeiro botão)
+  requestAnimationFrame(() => { d.scrollTop = 0; });
+  d.scrollTop = 0;
   return d;
 }
 

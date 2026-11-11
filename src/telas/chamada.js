@@ -130,10 +130,10 @@ export function telaDia({ params }) {
 let alterado = false;
 export const chamadaComAlteracao = () => alterado;
 
-// Quem aparece: ativos que já tinham entrado e quem saiu depois dessa data ou tem marcação nela
+// Quem aparece: todos os ativos (mesmo cadastrados depois, para corrigir aulas passadas),
+// quem saiu depois dessa data e quem já tem marcação nela
 function alunosDoDia(data, registros) {
-  return estado.alunos.filter((a) => registros[a.id] ||
-    ((a.entrada || '') <= data && (a.ativo || (a.saidaEm && a.saidaEm >= data))));
+  return estado.alunos.filter((a) => registros[a.id] || a.ativo || (a.saidaEm && a.saidaEm >= data));
 }
 
 export function telaChamada({ params }) {

@@ -11,7 +11,7 @@ import { janelaRetirar } from './alunos.js';
 const filtro = { periodo: null, inicio: '', fim: '', aba: 'alunos', ordem: 'faltas' };
 let ultimo = null; // { chave, presencas }
 
-const COR_TEXTO = { vermelho: 'Chegou ao limite', amarelo: 'Com faltas', '': 'Sem faltas' };
+const COR_TEXTO = { vermelho: 'Chegou ao limite', amarelo: 'Com faltas', '': 'Sem faltas' }; // planilha
 
 function periodoEscolhido() {
   const hoje = hojeISO();
@@ -100,10 +100,9 @@ function desenhar(conteudo, rel, p) {
       <div class="numero"><strong>${resumo.ativos}</strong><span>alunos ativos</span></div>
       <div class="numero"><strong>${pct(resumo.freqGeral)}</strong><span>frequência média</span></div>
       <div class="numero cores">
-        <span class="bolinha vermelho">${resumo.vermelhos}</span>
-        <span class="bolinha amarelo">${resumo.amarelos}</span>
-        <span class="bolinha verde">${resumo.semFaltas}</span>
-        <span>no limite · com faltas · sem faltas</span>
+        <span class="cor-item"><span class="bolinha vermelho">${resumo.vermelhos}</span><small>no limite</small></span>
+        <span class="cor-item"><span class="bolinha amarelo">${resumo.amarelos}</span><small>com faltas</small></span>
+        <span class="cor-item"><span class="bolinha verde">${resumo.semFaltas}</span><small>sem faltas</small></span>
       </div>
     </div>
 
@@ -142,10 +141,6 @@ function avisos(rel) {
       ${rel.semChamada.slice(-6).map((d) => `<a href="#/dia/${d}">${dataCurta(d, { ano: false })}</a>`).join(', ')}
       ${rel.semChamada.length > 6 ? '…' : ''}</li>`);
   }
-  if (rel.novosNoMeio.length) {
-    itens.push(`<li><strong>Entraram no meio do período:</strong> ${rel.novosNoMeio.map((l) =>
-      `${esc(l.nome)} (${dataCurta(l.entrada, { ano: false })})`).join(', ')}. A frequência deles conta só as aulas depois do cadastro.</li>`);
-  }
   return itens.length ? `<section class="cartao alerta-cartao"><ul class="avisos">${itens.join('')}</ul></section>` : '';
 }
 
@@ -179,25 +174,22 @@ function abaAlunos(rel) {
     <div class="ordem nao-imprimir">Ordenar:
       ${chips([['faltas', 'Mais faltas'], ['nome', 'Nome']], filtro.ordem, 'ordem')}
     </div>
-    <div class="tabela-rolagem">
-      <table class="tabela">
-        <thead><tr>
-          <th>Aluno</th>
-          <th title="Presenças">P</th><th title="Faltas">F</th><th title="Justificadas">J</th>
-          <th title="Aulas não marcadas">Não marc.</th><th>Freq.</th><th>Faltam p/ limite</th><th>Situação</th>
-        </tr></thead>
-        <tbody>${linhas.map((l) => `
-          <tr class="linha-${l.cor || 'ok'}" data-ficha="${l.id}" tabindex="0">
-            <td class="nome">${esc(l.nome)}${l.ativo ? '' : ' <small>(retirado)</small>'}</td>
-            <td>${l.presente}</td><td><strong>${l.falta}</strong></td><td>${l.justificada}</td>
-            <td>${l.naoMarcada || ''}</td><td>${pct(l.freq)}</td><td>${l.restantes}</td>
-            <td>${COR_TEXTO[l.cor]}${l.cor === 'vermelho' && l.ativo
-              ? ` <button type="button" class="botao pequeno perigo nao-imprimir" data-retirar="${l.id}">Retirar do projeto</button>` : ''}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>
-    </div>
-    <p class="suave pequeno nao-imprimir">Toque num aluno para ver a ficha com todas as aulas.</p>`;
+    <ul class="lista-relatorio">${linhas.map((l) => `
+      <li class="linha-${l.cor || 'ok'}" data-ficha="${l.id}" tabindex="0" role="button">
+        <div class="lr-topo">
+          <span class="nome">${esc(l.nome)}${l.ativo ? '' : ' <small class="suave">(retirado)</small>'}</span>
+          <span class="lr-faltas"><strong>${l.falta}</strong> ${l.falta === 1 ? 'falta' : 'faltas'}</span>
+        </div>
+        <div class="lr-detalhe">
+          ${l.presente} ${l.presente === 1 ? 'presença' : 'presenças'} · frequência ${pct(l.freq)}
+          ${l.justificada ? ` · ${l.justificada} justif.` : ''}
+          · ${l.restantes ? `pode faltar mais ${l.restantes}` : 'chegou ao limite'}
+        </div>
+        ${l.cor === 'vermelho' && l.ativo
+          ? `<button type="button" class="botao perigo pequeno nao-imprimir" data-retirar="${l.id}">Retirar do projeto</button>` : ''}
+      </li>`).join('')}
+    </ul>
+    <p class="suave pequeno nao-imprimir">Toque num aluno para ver todas as aulas dele.</p>`;
 }
 
 function abaPorAula(rel) {
@@ -210,15 +202,14 @@ function abaPorAula(rel) {
   }).join(' · ');
   return `
     ${mediaDia ? `<p class="suave">Comparecimento por dia da semana: ${mediaDia}</p>` : ''}
-    <div class="tabela-rolagem">
-      <table class="tabela">
-        <thead><tr><th>Aula</th><th>Vieram</th><th>Faltaram</th><th>Justif.</th><th>Comparec.</th></tr></thead>
-        <tbody>${[...rel.porAula].reverse().map((a) => `
-          <tr><td><a href="#/dia/${a.data}">${DIAS_CURTOS[diaSemana(a.data)]} ${dataCurta(a.data, { ano: false })}</a></td>
-          <td>${a.presente}</td><td>${a.falta}</td><td>${a.justificada}</td><td>${pct(a.pct)}</td></tr>`).join('')}
-        </tbody>
-      </table>
-    </div>`;
+    <ul class="lista-aulas">${[...rel.porAula].reverse().map((a) => `
+      <li><a href="#/dia/${a.data}">
+        <span class="la-data">${DIAS_CURTOS[diaSemana(a.data)]} ${dataCurta(a.data, { ano: false })}</span>
+        <span class="la-numeros"><span class="n-presente"><strong>${a.presente}</strong> vieram</span>
+          <span class="n-falta"><strong>${a.falta}</strong> faltaram</span></span>
+        <strong class="la-pct">${pct(a.pct)}</strong>
+      </a></li>`).join('')}
+    </ul>`;
 }
 
 function abaGrade(rel) {
@@ -251,7 +242,7 @@ function fichaAluno(l, rel) {
     <div class="ficha-numeros linha-${l.cor || 'ok'}">
       <span><strong>${l.presente}</strong> presenças</span>
       <span><strong>${l.falta}</strong> faltas</span>
-      <span><strong>${l.justificada}</strong> justificadas</span>
+      ${l.justificada ? `<span><strong>${l.justificada}</strong> justificadas</span>` : ''}
       <span><strong>${pct(l.freq)}</strong> frequência</span>
     </div>
     <ul class="lista-simples">

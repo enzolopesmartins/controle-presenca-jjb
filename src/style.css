@@ -266,7 +266,9 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 .numero strong { font-size: 1.8rem; line-height: 1.1; }
 .numero span, .numero small { color: var(--suave); font-size: .9rem; }
 .numero.cores { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
-.numero.cores > span:last-child { flex-basis: 100%; font-size: .8rem; }
+.numero.cores { justify-content: space-between; flex-wrap: nowrap; }
+.cor-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.cor-item small { font-size: .75rem; text-align: center; line-height: 1.1; }
 .bolinha {
   display: inline-flex; align-items: center; justify-content: center; min-width: 40px; height: 40px;
   border-radius: 999px; font-weight: 800; font-size: 1.1rem; color: var(--texto) !important; padding: 0 8px;
@@ -356,4 +358,36 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 
 @media (min-width: 640px) {
   .numeros { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ---------- relatório no celular: uma linha por aluno, sem tabela larga ---------- */
+
+.lista-relatorio, .lista-aulas { list-style: none; margin: 10px 0; padding: 0; display: grid; gap: 8px; }
+.lista-relatorio li {
+  background: #fff; border: 1px solid var(--borda); border-left: 6px solid #c8ccd4;
+  border-radius: var(--raio); padding: 10px 12px; cursor: pointer;
+}
+.lista-relatorio li.linha-amarelo { background: var(--amarelo-linha); border-left-color: #e0b100; }
+.lista-relatorio li.linha-vermelho { background: var(--vermelho-linha); border-left-color: var(--falta); }
+.lr-topo { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.lr-topo .nome { font-weight: 700; font-size: 1.05rem; min-width: 0; overflow-wrap: anywhere; }
+.lr-faltas { flex: none; white-space: nowrap; }
+.lr-faltas strong { font-size: 1.3rem; color: var(--falta); }
+.linha-ok .lr-faltas strong { color: var(--suave); }
+.lr-detalhe { color: var(--suave); font-size: .92rem; margin-top: 2px; }
+.lista-relatorio .botao { margin-top: 8px; width: 100%; }
+
+.lista-aulas a {
+  display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--borda);
+  border-radius: var(--raio); padding: 12px; color: inherit; text-decoration: none;
+}
+.la-data { font-weight: 700; width: 78px; flex: none; }
+.la-numeros { flex: 1; display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: .95rem; }
+.la-pct { font-size: 1.1rem; }
+
+/* Botões que ficam lado a lado no computador viram uma coluna no celular */
+@media (max-width: 560px) {
+  .exportar .botoes .botao { width: 100%; }
+  .titulo-acao .botao { padding: 10px 14px; }
+  h1 { font-size: 1.4rem; }
 }
