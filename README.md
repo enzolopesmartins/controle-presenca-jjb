@@ -27,7 +27,7 @@ Endereço: **https://controlepresencajjb.web.app**. Projeto no Firebase: `contro
 
 Entrar (com "Esqueci a senha" e o olho para ver a senha), Início (calendário da chamada,
 próxima aula, aulas sem chamada), Dia ("Fazer chamada"), Chamada (P e F, salvar e limpar), Alunos, Dias de aula (calendário), Ciclos, Relatório (resumo, tabela por aluno, ficha, por aula, grade,
-avisos, planilhas e impressão) e Exportar planilha do mês (backup).
+avisos e salvar em PDF).
 
 Funciona sem internet: as marcações ficam guardadas no aparelho e vão para o banco quando a
 conexão volta. Não feche o site logo depois de marcar sem sinal.
@@ -81,7 +81,7 @@ Regras do banco: `npx firebase deploy --only firestore`.
 | `src/firebase.js` | Configuração do Firebase com cache offline |
 | `src/main.js` | Rotas e login |
 | `src/telas/*.js` | Uma tela por arquivo |
-| `src/ui.js` | Utilidades de tela (avisos, janelas, CSV) |
+| `src/ui.js` | Utilidades de tela (avisos e janelas) |
 | `src/atualizacao.js` | Atualiza o site sozinho quando sai versão nova |
 | `firestore.rules` | Regras de segurança |
 | `testes/` | Testes dos cálculos e das regras |
@@ -90,8 +90,7 @@ Regras do banco: `npx firebase deploy --only firestore`.
 ## Segurança e LGPD
 
 Das crianças: só o nome (ou apelido) e a observação. Sem Analytics nem scripts de terceiros. Exclusão a pedido
-do responsável: pelo console, trocando o nome por um código. Backup: exportar a planilha uma
-vez por mês.
+do responsável: pelo console, trocando o nome por um código. Backup: salvar o relatório do ciclo em PDF.
 
 ## Histórico
 

@@ -12,7 +12,7 @@ import {
 } from './telas/chamada.js';
 import { telaAlunos } from './telas/alunos.js';
 import { telaRelatorio } from './telas/relatorio.js';
-import { telaMais, telaExportar } from './telas/mais.js';
+import { telaMais } from './telas/mais.js';
 import { telaDias } from './telas/dias.js';
 import { telaCiclos } from './telas/ciclos.js';
 
@@ -26,11 +26,10 @@ const ROTAS = {
   mais: telaMais,
   dias: telaDias,
   ciclos: telaCiclos,
-  exportar: telaExportar,
 };
 
 // Qual item da barra de baixo fica aceso em cada tela
-const ABA = { dia: '', chamada: '', dias: 'mais', ciclos: 'mais', exportar: 'mais' };
+const ABA = { dia: '', chamada: '', dias: 'mais', ciclos: 'mais' };
 
 const barra = document.getElementById('barra');
 const topoData = document.getElementById('topo-data');

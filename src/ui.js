@@ -1,4 +1,4 @@
-// Utilidades de tela: texto seguro, avisos, janelas e arquivos CSV.
+// Utilidades de tela: texto seguro, avisos e janelas.
 
 export const app = document.getElementById('app');
 
@@ -116,21 +116,6 @@ export function aoEnviar(form, acao) {
 }
 
 export const erroTela = (mensagem) => Object.assign(new Error(mensagem), { mensagem });
-
-// Baixa um CSV que abre certo no Excel em português (ponto e vírgula e acentos)
-export function baixarCSV(nomeArquivo, linhas) {
-  const celula = (v) => {
-    const t = String(v ?? '');
-    return /[;"\n]/.test(t) ? `"${t.replaceAll('"', '""')}"` : t;
-  };
-  const texto = '﻿' + linhas.map((l) => l.map(celula).join(';')).join('\r\n');
-  const url = URL.createObjectURL(new Blob([texto], { type: 'text/csv;charset=utf-8' }));
-  const a = Object.assign(document.createElement('a'), { href: url, download: nomeArquivo });
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 // Botões de escolha (aba, ordem...). Devolve o HTML.
 export function chips(opcoes, atual, nome) {
