@@ -21,7 +21,10 @@ Endereço: **https://controlepresencajjb.web.app**. Projeto no Firebase: `contro
 - **Limite de 4 faltas por ciclo** (campo `limiteFaltas` de cada ciclo). Falta justificada não conta.
 - Cor da linha no relatório: sem cor sem faltas, amarela de 1 a 3, vermelha a partir de 4.
 - Frequência = presenças ÷ (presenças + faltas). A justificada fica de fora.
-- Retirar do projeto = desativar (com data e motivo). Nada é apagado pelo site.
+- Retirar do projeto = desativar (com data e motivo). O aluno retirado só aparece na aba Retirados
+  (some da chamada e do relatório), mas as marcações antigas continuam guardadas.
+- Sininho na Início: avisa quem está com 3 faltas (perto do limite) e com 4 ou mais no ciclo ativo.
+- Relatório: botão "Exportar PDF e enviar no WhatsApp" (gera o PDF no celular e abre a lista de apps).
 - Aluno novo no meio do ciclo só conta as aulas depois do cadastro.
 
 ## Telas

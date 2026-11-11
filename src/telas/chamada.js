@@ -130,10 +130,10 @@ export function telaDia({ params }) {
 let alterado = false;
 export const chamadaComAlteracao = () => alterado;
 
-// Quem aparece: todos os ativos (mesmo cadastrados depois, para corrigir aulas passadas),
-// quem saiu depois dessa data e quem já tem marcação nela
-function alunosDoDia(data, registros) {
-  return estado.alunos.filter((a) => registros[a.id] || a.ativo || (a.saidaEm && a.saidaEm >= data));
+// Quem aparece: todos os alunos ativos (mesmo cadastrados depois, para corrigir aulas passadas).
+// Retirados não aparecem; as marcações antigas deles continuam guardadas.
+function alunosDoDia() {
+  return estado.alunos.filter((a) => a.ativo);
 }
 
 export function telaChamada({ params }) {
@@ -173,7 +173,7 @@ export function telaChamada({ params }) {
     const aceso = (chave) => s === chave || (chave === 'falta' && s === 'justificada');
     return `
       <li class="aluno-chamada ${s ? `marcado-${s}` : ''}" data-aluno="${a.id}">
-        <span class="nome">${esc(a.nome)}${a.ativo ? '' : ' <small class="suave">(retirado)</small>'}
+        <span class="nome">${esc(a.nome)}
           ${s === 'justificada' ? `<small class="motivo">Justificada${motivos[a.id] ? `: ${esc(motivos[a.id])}` : ''}</small>` : ''}</span>
         <div class="dois-botoes">${Object.entries(STATUS_LISTA).map(([chave, info]) => `
           <button type="button" class="st st-${chave} ${aceso(chave) ? 'escolhido' : ''} ${chave === 'falta' && s === 'justificada' ? 'justificada' : ''}"

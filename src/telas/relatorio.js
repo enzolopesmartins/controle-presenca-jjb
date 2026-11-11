@@ -1,6 +1,6 @@
 // Relatório de frequência (e de fim de ciclo): resumo, tabela por aluno, por aula e grade.
 import { estado, cicloAtivo, listarPresencas } from '../dados.js';
-import { app, esc, pct, chips, janela, STATUS, mensagemErro } from '../ui.js';
+import { app, esc, pct, chips, janela, STATUS, mensagemErro, toast } from '../ui.js';
 import { montarRelatorio, ordenar } from '../relatorio.js';
 import {
   hojeISO, dataCurta, dataLonga, diaSemana, DIAS, DIAS_CURTOS, inicioDoMes, noDia,
@@ -10,6 +10,8 @@ import { janelaRetirar } from './alunos.js';
 // Escolhas do professor ficam guardadas enquanto o site está aberto
 const filtro = { periodo: null, inicio: '', fim: '', aba: 'alunos', ordem: 'faltas' };
 let ultimo = null; // { chave, presencas }
+// O gerador de PDF só carrega quando abre o relatório (deixa o resto do site leve)
+let pdf = null;
 
 
 function periodoEscolhido() {
@@ -28,6 +30,7 @@ function periodoEscolhido() {
 // Vindo do menu, busca as presenças de novo; trocando filtro, aproveita as que já tem
 export function telaRelatorio(rota) {
   if (rota) ultimo = null;
+  pdf ??= import('../pdf.js');
   const p = periodoEscolhido();
   if (!filtro.periodo) filtro.periodo = p.ciclo?.id ?? 'livre';
 
@@ -113,9 +116,9 @@ function desenhar(conteudo, rel, p) {
     <div id="aba"></div>
 
     <section class="cartao nao-imprimir exportar">
-      <h2>Guardar ou mostrar</h2>
-      <button type="button" class="botao secundario largo" id="imprimir">Salvar em PDF ou imprimir</button>
-      <p class="suave pequeno">No celular, escolha "Salvar como PDF" para guardar ou mandar no WhatsApp.</p>
+      <h2>Guardar ou mandar</h2>
+      <button type="button" class="botao largo botao-whats" id="enviar-pdf">Exportar PDF e enviar no WhatsApp</button>
+      <p class="suave pequeno">Abre a lista de apps do celular: escolha o WhatsApp e mande para você mesmo (ou para quem quiser) para guardar.</p>
       <p class="suave pequeno">Frequência = presenças ÷ (presenças + faltas). Falta justificada fica de fora.</p>
     </section>`;
 
@@ -124,7 +127,20 @@ function desenhar(conteudo, rel, p) {
     conteudo.querySelectorAll('[data-aba]').forEach((c) => c.classList.toggle('ativo', c === b));
     desenharAba(rel, p);
   }));
-  document.getElementById('imprimir').onclick = () => window.print();
+  document.getElementById('enviar-pdf').onclick = async (ev) => {
+    const botao = ev.currentTarget;
+    botao.disabled = true;
+    try {
+      const { enviarRelatorioPDF } = await pdf;
+      const titulo = p.ciclo ? p.ciclo.nome : `${dataCurta(p.inicio)} a ${dataCurta(p.fim)}`;
+      const resultado = await enviarRelatorioPDF(rel, titulo);
+      if (resultado === 'baixado') toast('PDF baixado. Abra o WhatsApp e anexe o arquivo.', 'ok');
+    } catch (e) {
+      console.error(e);
+      toast(mensagemErro(e), 'erro');
+    }
+    botao.disabled = false;
+  };
   desenharAba(rel, p);
 }
 
@@ -158,7 +174,7 @@ function desenharAba(rel, p) {
   }));
   el.querySelectorAll('[data-retirar]').forEach((b) => b.addEventListener('click', () => {
     const aluno = estado.alunos.find((a) => a.id === b.dataset.retirar);
-    janelaRetirar(aluno, () => { b.replaceWith(Object.assign(document.createElement('small'), { textContent: 'retirado' })); });
+    janelaRetirar(aluno, () => setTimeout(() => telaRelatorio(), 300));
   }));
 }
 
@@ -171,7 +187,7 @@ function abaAlunos(rel) {
     <ul class="lista-relatorio">${linhas.map((l) => `
       <li class="linha-${l.cor || 'ok'}" data-ficha="${l.id}" tabindex="0" role="button">
         <div class="lr-topo">
-          <span class="nome">${esc(l.nome)}${l.ativo ? '' : ' <small class="suave">(retirado)</small>'}</span>
+          <span class="nome">${esc(l.nome)}</span>
           <span class="lr-faltas"><strong>${l.falta}</strong> ${l.falta === 1 ? 'falta' : 'faltas'}</span>
         </div>
         <div class="lr-detalhe">
@@ -231,7 +247,7 @@ function fichaAluno(l, rel) {
     : dias.length === 1 ? `Faltas só ${noDia(Number(dias[0][0]))}.` : dias.length ? 'Faltas iguais nos dias.' : '';
   janela(`
     <h2>${esc(l.nome)}</h2>
-    <p class="suave">${l.ativo ? `aluno desde ${dataCurta(l.entrada)}` : `retirado em ${dataCurta(l.saidaEm)}`}</p>
+    <p class="suave">aluno desde ${dataCurta(l.entrada)}</p>
     ${l.observacao ? `<p class="alerta">${esc(l.observacao)}</p>` : ''}
     <div class="ficha-numeros linha-${l.cor || 'ok'}">
       <span><strong>${l.presente}</strong> presenças</span>

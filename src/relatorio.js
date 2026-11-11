@@ -33,15 +33,13 @@ export function montarRelatorio({
       .filter((d) => d < hoje && d >= INICIO_DO_SISTEMA && !registrosDoDia[d])
     : [];
 
-  const comRegistro = (a) => aulasDadas.some((d) => registrosDoDia[d][a.id]);
-  const estavaNoProjeto = (a) => (a.entrada || '') <= fim && (a.ativo || (a.saidaEm && a.saidaEm >= inicio));
-  const participantes = alunos.filter((a) => comRegistro(a) || estavaNoProjeto(a));
+  // Alunos retirados do projeto não entram no relatório (só aparecem na aba Retirados)
+  const participantes = alunos.filter((a) => a.ativo);
 
   const linhas = participantes.map((a) => {
     // Só contam as aulas depois da entrada e até a saída (ou as que têm marcação)
     const historico = aulasDadas
-      .filter((d) => registrosDoDia[d][a.id] ||
-        (d >= (a.entrada || '') && (!a.saidaEm || d <= a.saidaEm)))
+      .filter((d) => registrosDoDia[d][a.id] || d >= (a.entrada || ''))
       .map((d) => ({ data: d, status: registrosDoDia[d][a.id] ?? null, motivo: motivosDoDia[d][a.id] ?? '' }));
 
     const conta = { presente: 0, falta: 0, justificada: 0, naoMarcada: 0 };

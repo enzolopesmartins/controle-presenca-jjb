@@ -14,8 +14,10 @@
   --presente-fundo: #dcfce7;
   --falta: #c62828;
   --falta-fundo: #fde2e2;
-  --justificada: #b45309;
-  --justificada-fundo: #fef3c7;
+  --justificada: #2563eb;
+  --justificada-fundo: #dbeafe;
+  --aviso: #b45309;
+  --aviso-fundo: #fef3c7;
   --amarelo-linha: #fff6cc;
   --vermelho-linha: #ffdede;
   --raio: 12px;
@@ -84,7 +86,7 @@ main {
 .carregando, .vazio { color: var(--suave); text-align: center; padding: 24px 0; }
 .rotulo { font-size: .85rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--suave); margin-bottom: .5rem; }
 .destaque-hoje .botao.grande { margin-bottom: 12px; }
-.alerta { background: var(--justificada-fundo); border-radius: 10px; padding: 10px 12px; }
+.alerta { background: var(--aviso-fundo); border-radius: 10px; padding: 10px 12px; }
 .alerta-cartao { border-color: #f5d27a; background: #fffbeb; }
 .aviso-ok { background: var(--presente-fundo); border-radius: 10px; padding: 10px 12px; margin-top: 12px; }
 .erro { color: var(--falta); background: var(--falta-fundo); border-radius: 10px; padding: 10px 12px; }
@@ -167,7 +169,7 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 .n-falta strong { color: var(--falta); }
 .n-justificada strong { color: var(--justificada); }
 .n-falta-marcar { color: var(--suave); }
-.nao-salvo { color: var(--justificada); font-weight: 700; }
+.nao-salvo { color: var(--aviso); font-weight: 700; }
 .resumo-chamada { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 1.05rem; }
 
 /* Uma linha por aluno: nome à esquerda (quebra em duas linhas se for comprido), P e F à direita */
@@ -183,7 +185,8 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 }
 .aluno-chamada.marcado-presente { border-left-color: var(--presente); background: #f6fdf8; }
 .aluno-chamada.marcado-falta { border-left-color: var(--falta); background: #fff7f7; }
-.aluno-chamada.marcado-justificada { border-left-color: var(--justificada); background: #fffbf0; }
+.aluno-chamada.marcado-justificada { border-left-color: var(--justificada); background: #f0f6ff; }
+.aluno-chamada.marcado-justificada .nome { color: var(--justificada); }
 .dois-botoes { display: flex; gap: 8px; flex: none; }
 .st {
   width: 56px; height: 56px; border-radius: 12px; border: 2px solid; background: #fff; font: inherit;
@@ -396,3 +399,29 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
   h1 { font-size: 1.4rem; }
 }
 .h-motivo { display: block; font-size: .85rem; color: var(--suave); }
+
+/* Botão do WhatsApp no relatório */
+.botao-whats { background: #1fae5b; border-color: #1fae5b; }
+
+/* ---------- sininho de avisos de faltas (tela Início) ---------- */
+.sino {
+  position: relative; width: 52px; height: 52px; flex: none; border-radius: 50%;
+  background: #fff; border: 1px solid var(--borda); color: var(--marca); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; box-shadow: var(--sombra);
+}
+.sino.tem-aviso { color: var(--falta); border-color: #f1b1b1; }
+.sino.tem-aviso svg { animation: balancar 1.2s ease-in-out 2; transform-origin: 50% 10%; }
+@keyframes balancar { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(14deg); } 75% { transform: rotate(-14deg); } }
+.sino-numero {
+  position: absolute; top: -4px; right: -4px; min-width: 22px; height: 22px; padding: 0 6px;
+  border-radius: 999px; background: var(--falta); color: #fff; font-size: .8rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; border: 2px solid var(--fundo);
+}
+.lista-avisos { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 6px; }
+.lista-avisos li {
+  display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 10px;
+  border-left: 6px solid; font-weight: 600;
+}
+.lista-avisos .av-vermelho { background: var(--vermelho-linha); border-color: var(--falta); }
+.lista-avisos .av-amarelo { background: var(--amarelo-linha); border-color: #e0b100; }
+.lista-avisos li span:last-child { white-space: nowrap; }
