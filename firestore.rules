@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // Só o professor (quem tem documento em professores/{uid}) lê ou grava alguma coisa.
-// Ninguém apaga turmas, alunos, ciclos ou presenças pelo site. Se precisar, faça pelo console.
+// Ninguém apaga alunos, ciclos ou presenças pelo site. Se precisar, faça pelo console.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -36,12 +36,6 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    match /turmas/{id} {
-      allow read: if ehProfessor();
-      allow create, update: if ehProfessor() && textoOk(novo().nome, 60) && novo().ativa is bool;
-      allow delete: if false;
-    }
-
     match /config/{id} {
       allow read: if ehProfessor();
       allow create, update: if ehProfessor() && id == 'aulas' &&
@@ -61,7 +55,9 @@ service cloud.firestore {
     match /alunos/{id} {
       allow read: if ehProfessor();
       allow create, update: if ehProfessor() && textoOk(novo().nome, 80) &&
-        novo().ativo is bool && novo().turmaId is string && dataOk(novo().entrada);
+        novo().ativo is bool && dataOk(novo().entrada) &&
+        (!('telefone' in novo()) || (novo().telefone is string && novo().telefone.size() <= 20)) &&
+        (!('observacao' in novo()) || (novo().observacao is string && novo().observacao.size() <= 500));
       allow delete: if false;
     }
 

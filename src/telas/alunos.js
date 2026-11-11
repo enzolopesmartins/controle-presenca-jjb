@@ -1,15 +1,14 @@
-// Alunos: cadastrar, editar, trocar de turma, retirar do projeto e reativar. Sem apagar.
+// Alunos: cadastrar, editar, retirar do projeto e reativar. Sem apagar.
 import {
-  estado, criarAluno, atualizarAluno, retirarAluno, reativarAluno, nomeDaTurma,
+  estado, criarAluno, atualizarAluno, retirarAluno, reativarAluno,
 } from '../dados.js';
-import { app, esc, gravar, janela, chips, erroTela, aoEnviar } from '../ui.js';
+import {
+  app, esc, gravar, janela, chips, erroTela, aoEnviar, formatarTelefone, telefoneTexto, linkWhats,
+} from '../ui.js';
 import { hojeISO, dataCurta } from '../datas.js';
 
 let busca = '';
 let mostrar = 'ativos';
-
-const opcoesTurma = (atual) => estado.turmas.map((t) =>
-  `<option value="${t.id}" ${t.id === atual ? 'selected' : ''}>${esc(t.nome)}</option>`).join('');
 
 const normalizar = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -36,18 +35,13 @@ export function telaAlunos() {
         ? 'Nenhum aluno ainda. Toque em "+ Novo aluno".' : 'Nenhum aluno retirado.'}</p>`;
       return;
     }
-    const grupos = [...estado.turmas.map((t) => [t.nome, base.filter((a) => a.turmaId === t.id)]),
-      ['Sem turma', base.filter((a) => !estado.turmas.some((t) => t.id === a.turmaId))]];
-    el.innerHTML = grupos.filter(([, l]) => l.length).map(([nome, l]) => `
-      <section class="grupo-turma">
-        <h2>${esc(nome)} <span class="suave">(${l.length})</span></h2>
-        <ul class="lista-toque">${l.map((a) => `
+    el.innerHTML = `
+        <ul class="lista-toque">${base.map((a) => `
           <li><button type="button" data-aluno="${a.id}">
             <span>${esc(a.nome)}</span>
-            <small class="suave">${a.ativo ? `desde ${dataCurta(a.entrada, { ano: false })}` : `saiu em ${dataCurta(a.saidaEm)}`}</small>
+            <small class="suave">${a.ativo ? `desde ${dataCurta(a.entrada, { ano: false })}` : `saiu em ${dataCurta(a.saidaEm)}`}${a.telefone ? ` · ${esc(telefoneTexto(a.telefone))}` : ''}</small>
           </button></li>`).join('')}
-        </ul>
-      </section>`).join('');
+        </ul>`;
   };
 
   document.getElementById('busca').addEventListener('input', (ev) => {
@@ -69,13 +63,15 @@ export function telaAlunos() {
 
 // Cadastro e edição. No cadastro, a janela continua aberta para o próximo.
 function janelaAluno(aluno) {
-  const turmaPadrao = aluno?.turmaId ?? estado.turmas[0]?.id ?? '';
   const d = janela(`
     <h2>${aluno ? 'Editar aluno' : 'Novo aluno'}</h2>
     <form id="form-aluno">
       <label>Nome ou apelido <input name="nome" maxlength="80" required value="${esc(aluno?.nome ?? '')}" autocomplete="off" /></label>
-      <label>Turma <select name="turma">${opcoesTurma(turmaPadrao)}</select></label>
-      <p class="suave pequeno">Guarde só o necessário para reconhecer a criança.</p>
+      <label>Telefone do responsável <input name="telefone" type="tel" inputmode="tel" maxlength="20"
+        placeholder="(11) 99999-8888" value="${esc(telefoneTexto(aluno?.telefone))}" autocomplete="off" /></label>
+      ${aluno?.telefone ? `<p><a class="botao secundario pequeno" href="${linkWhats(aluno.telefone)}" target="_blank" rel="noopener">Chamar o responsável no WhatsApp</a></p>` : ''}
+      <label>Observação <textarea name="observacao" rows="3" maxlength="500"
+        placeholder="Ex.: alergia, quem busca, combinado com a família">${esc(aluno?.observacao ?? '')}</textarea></label>
       <p class="erro" hidden></p>
       <div class="botoes">
         <button type="button" class="botao secundario" data-fechar>${aluno ? 'Voltar' : 'Fechar'}</button>
@@ -93,20 +89,22 @@ function janelaAluno(aluno) {
   form.nome.focus();
   aoEnviar(form, (dados) => {
     const nome = dados.get('nome').trim().replace(/\s+/g, ' ');
-    const turmaId = dados.get('turma') ?? '';
     if (!nome) throw erroTela('Digite o nome.');
+    const digitado = dados.get('telefone').trim();
+    const telefone = digitado ? formatarTelefone(digitado) : '';
+    if (telefone === null) throw erroTela('Telefone com DDD, por exemplo (11) 99999-8888.');
+    const observacao = dados.get('observacao').trim();
     const repetido = estado.alunos.find((a) => a.id !== aluno?.id && normalizar(a.nome) === normalizar(nome));
     if (repetido && !form.dataset.confirmouRepetido) {
       form.dataset.confirmouRepetido = '1';
       throw erroTela(`Já existe "${repetido.nome}". Se for outra criança, toque de novo para cadastrar mesmo assim.`);
     }
     if (aluno) {
-      gravar(atualizarAluno(aluno.id, { nome, turmaId }), 'Aluno salvo');
+      gravar(atualizarAluno(aluno.id, { nome, telefone, observacao }), 'Aluno salvo');
       d.close();
     } else {
-      gravar(criarAluno(nome, turmaId), `${nome} cadastrado`);
+      gravar(criarAluno({ nome, telefone, observacao }), `${nome} cadastrado`);
       form.reset();
-      form.turma.value = turmaId;
       delete form.dataset.confirmouRepetido;
       form.nome.focus();
     }
@@ -143,4 +141,3 @@ export function janelaRetirar(aluno, aoTerminar) {
   });
 }
 
-export { nomeDaTurma };

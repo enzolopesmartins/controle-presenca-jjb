@@ -31,10 +31,10 @@ test('cor da linha: sem falta, 1 a 3, 4 ou mais', () => {
 });
 
 const alunos = [
-  { id: 'a', nome: 'Ana', turmaId: 't1', ativo: true, entrada: '2026-10-01' },
-  { id: 'b', nome: 'Bruno', turmaId: 't2', ativo: true, entrada: '2026-10-01' },
-  { id: 'c', nome: 'Caio', turmaId: 't1', ativo: true, entrada: '2026-11-08' }, // entrou no meio
-  { id: 'd', nome: 'Duda', turmaId: 't2', ativo: false, entrada: '2026-01-01', saidaEm: '2026-10-15' }, // saiu antes
+  { id: 'a', nome: 'Ana', ativo: true, entrada: '2026-10-01' },
+  { id: 'b', nome: 'Bruno', ativo: true, entrada: '2026-10-01' },
+  { id: 'c', nome: 'Caio', ativo: true, entrada: '2026-11-08' }, // entrou no meio
+  { id: 'd', nome: 'Duda', ativo: false, entrada: '2026-01-01', saidaEm: '2026-10-15' }, // saiu antes
 ];
 const presencas = [
   { data: '2026-11-02', registros: { a: 'presente', b: 'falta' } },
@@ -67,12 +67,6 @@ test('relatório do ciclo: contas, justificada não conta, cores', () => {
   assert.equal(r.resumo.amarelos, 1);
   assert.equal(r.resumo.semFaltas, 1);
   assert.deepEqual(r.porAula[0], { data: '2026-11-02', presente: 1, falta: 1, justificada: 0, pct: 0.5 });
-});
-
-test('filtro por turma', () => {
-  const r = montarRelatorio({ ...base, turmaId: 't2' });
-  assert.deepEqual(r.linhas.map((l) => l.id), ['b']);
-  assert.equal(r.resumo.freqGeral, 0);
 });
 
 test('sequências da ficha do aluno', () => {

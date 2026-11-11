@@ -9,7 +9,8 @@ Endereço: **https://controlepresencajjb.web.app**. Projeto no Firebase: `contro
 ## Regras de negócio
 
 - Só o professor entra (e-mail e senha). Não há tela de criar conta.
-- Duas turmas, mas **uma chamada por dia** com os alunos das duas, separados por turma.
+- **Sem turmas:** uma chamada por dia com todos os alunos.
+- Aluno: nome (ou apelido), telefone do responsável (com botão do WhatsApp) e observação.
 - Dias de aula padrão: segunda e sábado. Dá para acrescentar dia extra ou cancelar um dia.
 - Três status: presente, falta e falta justificada. Tocar de novo no mesmo botão desmarca.
 - Ciclos de 3 meses, com início e fim editáveis e botão Renovar.
@@ -22,8 +23,7 @@ Endereço: **https://controlepresencajjb.web.app**. Projeto no Firebase: `contro
 ## Telas
 
 Entrar (com "Esqueci a senha"), Início (chamada de hoje, próxima aula, aulas sem chamada),
-Chamada (data, filtro por turma, contador, marcar quem falta como presente), Alunos, Turmas,
-Dias de aula (calendário), Ciclos, Relatório (resumo, tabela por aluno, ficha, por aula, grade,
+Chamada (data, contador, marcar quem falta como presente), Alunos, Dias de aula (calendário), Ciclos, Relatório (resumo, tabela por aluno, ficha, por aula, grade,
 avisos, planilhas e impressão) e Exportar planilha do mês (backup).
 
 Funciona sem internet: as marcações ficam guardadas no aparelho e vão para o banco quando a
@@ -34,8 +34,7 @@ conexão volta. Não feche o site logo depois de marcar sem sinal.
 1. Console do Firebase > Authentication > Usuários > **Adicionar usuário**: e-mail e senha do
    professor. Copie o **UID**.
 2. Firestore > Dados > coleção `professores` > documento com **ID = UID**, campo `nome` (texto).
-3. Entrar no site. As turmas "Turma 1" e "Turma 2" e os dias padrão são criados sozinhos.
-   Depois: renomear as turmas, cadastrar os alunos e criar o ciclo.
+3. Entrar no site. Os dias padrão são criados sozinhos. Depois: cadastrar os alunos e criar o ciclo.
 4. Authentication > Configurações > Ações do usuário: desmarcar a criação de contas.
 
 ## Rodar no computador
@@ -50,7 +49,7 @@ npm run dev
 Precisa do Java. Nada é criado na internet.
 
 1. `npm run emulador` (deixe aberto)
-2. Em outro terminal: `npm run emulador:dados` (turmas, 12 alunos, ciclo e chamadas de exemplo)
+2. Em outro terminal: `npm run emulador:dados` (12 alunos, ciclo e chamadas de exemplo)
 3. `npm run dev:emulador`. Conta de teste: `professor@presenca.test` / `professor123`
 
 Testes:
@@ -87,7 +86,7 @@ Regras do banco: `npx firebase deploy --only firestore`.
 
 ## Segurança e LGPD
 
-Só o nome (ou apelido) das crianças. Sem Analytics nem scripts de terceiros. Exclusão a pedido
+Das crianças: só o nome (ou apelido), o telefone do responsável e a observação. Sem Analytics nem scripts de terceiros. Exclusão a pedido
 do responsável: pelo console, trocando o nome por um código. Backup: exportar a planilha uma
 vez por mês.
 

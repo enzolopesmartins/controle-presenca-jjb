@@ -17,7 +17,7 @@ beforeEach(async () => {
   await env.withSecurityRulesDisabled(async (c) => {
     const db = c.firestore();
     await setDoc(doc(db, 'professores/prof'), { nome: 'Professor' });
-    await setDoc(doc(db, 'alunos/a1'), { nome: 'Ana', ativo: true, turmaId: 't1', entrada: '2026-11-01' });
+    await setDoc(doc(db, 'alunos/a1'), { nome: 'Ana', ativo: true, entrada: '2026-11-01' });
     await setDoc(doc(db, 'presencas/20261109'), { data: '2026-11-09', registros: { a1: 'presente' } });
   });
 });
@@ -33,7 +33,7 @@ test('sem login: não lê nada', async () => {
 
 test('logado com outra conta: não lê nem grava', async () => {
   await assertFails(getDoc(doc(outro(), 'alunos/a1')));
-  await assertFails(setDoc(doc(outro(), 'alunos/x'), { nome: 'X', ativo: true, turmaId: 't1', entrada: '2026-11-01' }));
+  await assertFails(setDoc(doc(outro(), 'alunos/x'), { nome: 'X', ativo: true, entrada: '2026-11-01' }));
   await assertFails(getDoc(doc(outro(), 'professores/prof')));
 });
 
@@ -71,8 +71,17 @@ test('retirar aluno é desativar', async () => {
   await assertSucceeds(updateDoc(doc(prof(), 'alunos/a1'), { ativo: false, saidaEm: '2026-11-20', motivoSaida: 'faltas' }));
 });
 
+test('aluno com telefone e observação', async () => {
+  await assertSucceeds(setDoc(doc(prof(), 'alunos/x'), {
+    nome: 'Gael', ativo: true, entrada: '2026-11-10', telefone: '(11) 99999-8888', observacao: 'Alergia a amendoim',
+  }));
+  await assertFails(setDoc(doc(prof(), 'alunos/y'), {
+    nome: 'Gael', ativo: true, entrada: '2026-11-10', observacao: 'x'.repeat(501),
+  }));
+});
+
 test('aluno sem nome é recusado', async () => {
-  await assertFails(setDoc(doc(prof(), 'alunos/x'), { nome: '', ativo: true, turmaId: 't1', entrada: '2026-11-01' }));
+  await assertFails(setDoc(doc(prof(), 'alunos/x'), { nome: '', ativo: true, entrada: '2026-11-01' }));
 });
 
 test('ciclo: datas e limite válidos, sem apagar', async () => {

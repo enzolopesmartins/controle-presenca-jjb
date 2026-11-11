@@ -14,10 +14,10 @@ export function frequencia(presente, falta) {
 }
 
 // Monta o relatório de um período.
-// alunos: [{ id, nome, turmaId, ativo, entrada, saidaEm }]
+// alunos: [{ id, nome, ativo, entrada, saidaEm }]
 // presencas: [{ data, registros: { idAluno: status } }]
 export function montarRelatorio({
-  inicio, fim, hoje, alunos, presencas, diasPadrao, excecoes = {}, limite = 4, turmaId = '',
+  inicio, fim, hoje, alunos, presencas, diasPadrao, excecoes = {}, limite = 4,
 }) {
   const doPeriodo = presencas
     .filter((p) => p.data >= inicio && p.data <= fim && Object.keys(p.registros || {}).length)
@@ -32,10 +32,9 @@ export function montarRelatorio({
       .filter((d) => d < hoje && !registrosDoDia[d])
     : [];
 
-  const daTurma = alunos.filter((a) => !turmaId || a.turmaId === turmaId);
   const comRegistro = (a) => aulasDadas.some((d) => registrosDoDia[d][a.id]);
   const estavaNoProjeto = (a) => (a.entrada || '') <= fim && (a.ativo || (a.saidaEm && a.saidaEm >= inicio));
-  const participantes = daTurma.filter((a) => comRegistro(a) || estavaNoProjeto(a));
+  const participantes = alunos.filter((a) => comRegistro(a) || estavaNoProjeto(a));
 
   const linhas = participantes.map((a) => {
     // Só contam as aulas depois da entrada e até a saída (ou as que têm marcação)
@@ -82,8 +81,6 @@ export function montarRelatorio({
 
   const soma = (lista, campo) => lista.reduce((t, l) => t + l[campo], 0);
   const freqDe = (lista) => frequencia(soma(lista, 'presente'), soma(lista, 'falta'));
-  const freqPorTurma = {};
-  for (const l of linhas) (freqPorTurma[l.turmaId] ||= []).push(l);
 
   return {
     inicio, fim, limite,
@@ -95,7 +92,6 @@ export function montarRelatorio({
       aulas: aulasDadas.length,
       ativos: participantes.filter((a) => a.ativo).length,
       freqGeral: freqDe(linhas),
-      freqPorTurma: Object.fromEntries(Object.entries(freqPorTurma).map(([t, l]) => [t, freqDe(l)])),
       vermelhos: linhas.filter((l) => l.cor === 'vermelho').length,
       amarelos: linhas.filter((l) => l.cor === 'amarelo').length,
       semFaltas: linhas.filter((l) => l.cor === '').length,

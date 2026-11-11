@@ -21,11 +21,10 @@ export async function lerProfessor(uid) {
   return s.exists() ? { id: s.id, ...s.data() } : null;
 }
 
-// ---------- estado (turmas, alunos, dias de aula e ciclos ficam sempre atualizados) ----------
+// ---------- estado (alunos, dias de aula e ciclos ficam sempre atualizados) ----------
 // São coleções pequenas: ficam escutando o banco o tempo todo, inclusive sem internet.
 
 export const estado = {
-  turmas: [],
   alunos: [],
   diasPadrao: [1, 6],
   temConfig: true,
@@ -51,9 +50,6 @@ export function ouvirEstado() {
     };
     const ouvir = (ref, fn, nome) => onSnapshot(ref, (s) => { fn(s); pronto(nome); }, reject);
     pararDeOuvir = [
-      ouvir(collection(db, 'turmas'), (s) => {
-        estado.turmas = s.docs.map((d) => ({ id: d.id, ...d.data() })).sort(porNome);
-      }, 'turmas'),
       ouvir(collection(db, 'alunos'), (s) => {
         estado.alunos = s.docs.map((d) => ({ id: d.id, ...d.data() })).sort(porNome);
       }, 'alunos'),
@@ -64,11 +60,10 @@ export function ouvirEstado() {
       ouvir(collection(db, 'diasAula'), (s) => {
         estado.excecoes = Object.fromEntries(s.docs.map((d) => [d.data().data, d.data()]));
       }, 'diasAula'),
-      onSnapshot(collection(db, 'ciclos'), (s) => {
+      ouvir(collection(db, 'ciclos'), (s) => {
         estado.ciclos = s.docs.map((d) => ({ id: d.id, ...d.data() }))
           .sort((a, b) => b.inicio.localeCompare(a.inicio));
-        avisarMudanca();
-      }),
+      }, 'ciclos'),
     ];
   });
 }
@@ -79,26 +74,15 @@ export function pararEstado() {
 }
 
 export const cicloAtivo = () => estado.ciclos.find((c) => c.ativo) ?? null;
-export const nomeDaTurma = (id) => estado.turmas.find((t) => t.id === id)?.nome ?? 'Sem turma';
 
-// Primeiro uso: cria os dias padrão (segunda e sábado) e as duas turmas
+// Primeiro uso: cria os dias padrão (segunda e sábado)
 export async function prepararPrimeiroUso() {
-  const tarefas = [];
-  if (!estado.temConfig) tarefas.push(setDoc(doc(db, 'config', 'aulas'), { diasPadrao: [1, 6] }));
-  if (!estado.turmas.length) {
-    tarefas.push(addDoc(collection(db, 'turmas'), { nome: 'Turma 1', ativa: true }));
-    tarefas.push(addDoc(collection(db, 'turmas'), { nome: 'Turma 2', ativa: true }));
-  }
-  await Promise.all(tarefas);
+  if (!estado.temConfig) await setDoc(doc(db, 'config', 'aulas'), { diasPadrao: [1, 6] });
 }
 
 // ---------- gravações ----------
 // Sem internet, o Firebase guarda no aparelho e a promessa só termina quando envia.
 // Por isso as telas não esperam: o "estado" já se atualiza na hora.
-
-export const salvarTurma = (id, nome) => (id
-  ? updateDoc(doc(db, 'turmas', id), { nome })
-  : addDoc(collection(db, 'turmas'), { nome, ativa: true }));
 
 export const salvarDiasPadrao = (diasPadrao) =>
   setDoc(doc(db, 'config', 'aulas'), { diasPadrao: [...diasPadrao].sort() });
@@ -111,9 +95,9 @@ export function salvarExcecao(data, tipo, motivo = '') {
 
 export const removerExcecao = (data) => deleteDoc(doc(db, 'diasAula', idDia(data)));
 
-export function criarAluno(nome, turmaId) {
+export function criarAluno({ nome, telefone = '', observacao = '' }) {
   return addDoc(collection(db, 'alunos'), {
-    nome, turmaId, ativo: true, entrada: hojeISO(), criadoEm: serverTimestamp(),
+    nome, telefone, observacao, ativo: true, entrada: hojeISO(), criadoEm: serverTimestamp(),
   });
 }
 

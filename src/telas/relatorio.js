@@ -1,6 +1,8 @@
 // Relatório de frequência (e de fim de ciclo): resumo, tabela por aluno, por aula e grade.
-import { estado, cicloAtivo, listarPresencas, nomeDaTurma } from '../dados.js';
-import { app, esc, pct, chips, janela, baixarCSV, STATUS, mensagemErro } from '../ui.js';
+import { estado, cicloAtivo, listarPresencas } from '../dados.js';
+import {
+  app, esc, pct, chips, janela, baixarCSV, STATUS, mensagemErro, telefoneTexto, linkWhats,
+} from '../ui.js';
 import { montarRelatorio, ordenar } from '../relatorio.js';
 import {
   hojeISO, dataCurta, dataLonga, diaSemana, DIAS, DIAS_CURTOS, inicioDoMes, noDia,
@@ -8,7 +10,7 @@ import {
 import { janelaRetirar } from './alunos.js';
 
 // Escolhas do professor ficam guardadas enquanto o site está aberto
-const filtro = { periodo: null, inicio: '', fim: '', turma: '', aba: 'alunos', ordem: 'faltas' };
+const filtro = { periodo: null, inicio: '', fim: '', aba: 'alunos', ordem: 'faltas' };
 let ultimo = null; // { chave, presencas }
 
 const COR_TEXTO = { vermelho: 'Chegou ao limite', amarelo: 'Com faltas', '': 'Sem faltas' };
@@ -47,9 +49,8 @@ export function telaRelatorio(rota) {
           <label>De <input type="date" id="de" value="${p.inicio}" /></label>
           <label>Até <input type="date" id="ate" value="${p.fim}" /></label>
         </div>` : ''}
-      ${estado.turmas.length > 1 ? chips([['', 'Todas'], ...estado.turmas.map((t) => [t.id, t.nome])], filtro.turma, 'turma') : ''}
     </section>
-    <h2 class="so-imprimir">${p.ciclo ? esc(p.ciclo.nome) : 'Período'}: ${dataCurta(p.inicio)} a ${dataCurta(p.fim)}${filtro.turma ? ` · ${esc(nomeDaTurma(filtro.turma))}` : ''}</h2>
+    <h2 class="so-imprimir">${p.ciclo ? esc(p.ciclo.nome) : 'Período'}: ${dataCurta(p.inicio)} a ${dataCurta(p.fim)}</h2>
     <div id="conteudo"><p class="carregando">Calculando…</p></div>`;
 
   document.getElementById('periodo').addEventListener('change', (ev) => {
@@ -62,11 +63,6 @@ export function telaRelatorio(rota) {
       telaRelatorio();
     });
   }
-  app.querySelectorAll('[data-turma]').forEach((b) => b.addEventListener('click', () => {
-    filtro.turma = b.dataset.turma;
-    telaRelatorio();
-  }));
-
   carregar(p);
 }
 
@@ -89,7 +85,6 @@ async function carregar(p) {
       diasPadrao: estado.diasPadrao,
       excecoes: estado.excecoes,
       limite: p.limite,
-      turmaId: filtro.turma,
     });
     desenhar(conteudo, rel, p);
   } catch (e) {
@@ -100,15 +95,12 @@ async function carregar(p) {
 
 function desenhar(conteudo, rel, p) {
   const { resumo } = rel;
-  const turmasFreq = estado.turmas.filter((t) => !filtro.turma || t.id === filtro.turma)
-    .map((t) => `${esc(t.nome)}: ${pct(resumo.freqPorTurma[t.id])}`).join(' · ');
 
   conteudo.innerHTML = `
     <div class="numeros">
       <div class="numero"><strong>${resumo.aulas}</strong><span>aulas dadas</span></div>
       <div class="numero"><strong>${resumo.ativos}</strong><span>alunos ativos</span></div>
-      <div class="numero"><strong>${pct(resumo.freqGeral)}</strong><span>frequência média</span>
-        ${estado.turmas.length > 1 && !filtro.turma ? `<small>${turmasFreq}</small>` : ''}</div>
+      <div class="numero"><strong>${pct(resumo.freqGeral)}</strong><span>frequência média</span></div>
       <div class="numero cores">
         <span class="bolinha vermelho">${resumo.vermelhos}</span>
         <span class="bolinha amarelo">${resumo.amarelos}</span>
@@ -185,7 +177,6 @@ function desenharAba(rel, p) {
 
 function abaAlunos(rel) {
   const linhas = ordenar(rel.linhas, filtro.ordem);
-  const variasTurmas = estado.turmas.length > 1 && !filtro.turma;
   return `
     <div class="ordem nao-imprimir">Ordenar:
       ${chips([['faltas', 'Mais faltas'], ['nome', 'Nome']], filtro.ordem, 'ordem')}
@@ -193,14 +184,13 @@ function abaAlunos(rel) {
     <div class="tabela-rolagem">
       <table class="tabela">
         <thead><tr>
-          <th>Aluno</th>${variasTurmas ? '<th>Turma</th>' : ''}
+          <th>Aluno</th>
           <th title="Presenças">P</th><th title="Faltas">F</th><th title="Justificadas">J</th>
           <th title="Aulas não marcadas">Não marc.</th><th>Freq.</th><th>Faltam p/ limite</th><th>Situação</th>
         </tr></thead>
         <tbody>${linhas.map((l) => `
           <tr class="linha-${l.cor || 'ok'}" data-ficha="${l.id}" tabindex="0">
             <td class="nome">${esc(l.nome)}${l.ativo ? '' : ' <small>(retirado)</small>'}</td>
-            ${variasTurmas ? `<td>${esc(nomeDaTurma(l.turmaId))}</td>` : ''}
             <td>${l.presente}</td><td><strong>${l.falta}</strong></td><td>${l.justificada}</td>
             <td>${l.naoMarcada || ''}</td><td>${pct(l.freq)}</td><td>${l.restantes}</td>
             <td>${COR_TEXTO[l.cor]}${l.cor === 'vermelho' && l.ativo
@@ -258,7 +248,10 @@ function fichaAluno(l, rel) {
     : dias.length === 1 ? `Faltas só ${noDia(Number(dias[0][0]))}.` : dias.length ? 'Faltas iguais nos dias.' : '';
   janela(`
     <h2>${esc(l.nome)}</h2>
-    <p class="suave">${esc(nomeDaTurma(l.turmaId))} · ${l.ativo ? `aluno desde ${dataCurta(l.entrada)}` : `retirado em ${dataCurta(l.saidaEm)}`}</p>
+    <p class="suave">${l.ativo ? `aluno desde ${dataCurta(l.entrada)}` : `retirado em ${dataCurta(l.saidaEm)}`}</p>
+    ${l.telefone ? `<p>Responsável: <strong>${esc(telefoneTexto(l.telefone))}</strong>
+      <a class="botao secundario pequeno" href="${linkWhats(l.telefone)}" target="_blank" rel="noopener">WhatsApp</a></p>` : ''}
+    ${l.observacao ? `<p class="alerta">${esc(l.observacao)}</p>` : ''}
     <div class="ficha-numeros linha-${l.cor || 'ok'}">
       <span><strong>${l.presente}</strong> presenças</span>
       <span><strong>${l.falta}</strong> faltas</span>
@@ -284,8 +277,8 @@ const nomeArquivo = (p, tipo) => `presenca-${tipo}-${p.inicio}-a-${p.fim}.csv`;
 function csvResumo(rel, p) {
   const linhas = ordenar(rel.linhas, 'nome');
   baixarCSV(nomeArquivo(p, 'resumo'), [
-    ['Aluno', 'Turma', 'Ativo', 'Presenças', 'Faltas', 'Justificadas', 'Não marcadas', 'Frequência', 'Faltas até o limite', 'Situação'],
-    ...linhas.map((l) => [l.nome, nomeDaTurma(l.turmaId), l.ativo ? 'sim' : 'não', l.presente, l.falta,
+    ['Aluno', 'Ativo', 'Presenças', 'Faltas', 'Justificadas', 'Não marcadas', 'Frequência', 'Faltas até o limite', 'Situação'],
+    ...linhas.map((l) => [l.nome, l.ativo ? 'sim' : 'não', l.presente, l.falta,
       l.justificada, l.naoMarcada, pct(l.freq), l.restantes, COR_TEXTO[l.cor]]),
   ]);
 }
@@ -293,10 +286,10 @@ function csvResumo(rel, p) {
 function csvDetalhe(rel, p) {
   const linhas = ordenar(rel.linhas, 'nome');
   baixarCSV(nomeArquivo(p, 'aulas'), [
-    ['Aluno', 'Turma', ...rel.aulasDadas.map((d) => dataCurta(d))],
+    ['Aluno', ...rel.aulasDadas.map((d) => dataCurta(d))],
     ...linhas.map((l) => {
       const s = Object.fromEntries(l.historico.map((h) => [h.data, h.status]));
-      return [l.nome, nomeDaTurma(l.turmaId), ...rel.aulasDadas.map((d) => (s[d] ? STATUS[s[d]].texto : ''))];
+      return [l.nome, ...rel.aulasDadas.map((d) => (s[d] ? STATUS[s[d]].texto : ''))];
     }),
   ]);
 }

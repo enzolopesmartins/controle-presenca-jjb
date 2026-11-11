@@ -111,8 +111,6 @@ main {
 .lista-toque button:active, .lista-toque a:active { background: #f0f2f6; }
 .lista-toque small { font-size: .88rem; }
 
-.grupo-turma { margin-bottom: 18px; }
-.grupo-turma h2 { margin: 6px 4px 8px; }
 
 /* ---------- formulários e botões ---------- */
 
@@ -122,6 +120,7 @@ input, select, textarea {
   padding: 12px; border: 1px solid #c8ccd4; border-radius: 10px; background: #fff; color: var(--texto);
   min-height: 48px;
 }
+textarea { resize: vertical; }
 input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 1px; }
 .busca { margin: 0 0 12px; }
 

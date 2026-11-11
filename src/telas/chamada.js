@@ -1,11 +1,9 @@
-// Chamada do dia: uma lista só com as duas turmas, três botões por aluno.
+// Chamada do dia: uma lista só com todos os alunos, três botões por aluno.
 import { estado, ouvirChamada, marcar, marcarVarios, salvarExcecao } from '../dados.js';
-import { app, esc, gravar, chips, STATUS, confirmar } from '../ui.js';
+import { app, esc, gravar, STATUS, confirmar } from '../ui.js';
 import {
   hojeISO, temAula, dataLonga, aulaAnterior, proximaAula, maiuscula,
 } from '../datas.js';
-
-let filtroTurma = '';
 
 // Quem aparece na chamada de um dia: ativos que já tinham entrado,
 // e quem saiu depois dessa data ou tem marcação nela
@@ -35,7 +33,6 @@ export function telaChamada({ params }) {
       <div id="sem-aula"></div>
       <div class="contador" id="contador" aria-live="polite"></div>
       <p class="sincronia" id="sincronia"></p>
-      ${estado.turmas.length > 1 ? chips([['', 'Todas'], ...estado.turmas.map((t) => [t.id, t.nome])], filtroTurma, 'turma') : ''}
     </div>
     <div id="lista"></div>
     <button type="button" class="botao secundario largo" id="todos-presentes">Marcar quem falta como presente</button>`;
@@ -43,15 +40,6 @@ export function telaChamada({ params }) {
   document.getElementById('data').addEventListener('change', (ev) => {
     if (ev.target.value) location.hash = `#/chamada/${ev.target.value}`;
   });
-
-  app.querySelectorAll('[data-turma]').forEach((b) => b.addEventListener('click', () => {
-    filtroTurma = b.dataset.turma;
-    app.querySelectorAll('[data-turma]').forEach((c) => {
-      c.classList.toggle('ativo', c === b);
-      c.setAttribute('aria-pressed', c === b);
-    });
-    desenharLista();
-  }));
 
   // Data sem aula: avisa e oferece abrir um dia extra
   const semAula = document.getElementById('sem-aula');
@@ -69,7 +57,7 @@ export function telaChamada({ params }) {
   const lista = document.getElementById('lista');
 
   function visiveis() {
-    return alunosDoDia(data, registros).filter((a) => !filtroTurma || a.turmaId === filtroTurma);
+    return alunosDoDia(data, registros);
   }
 
   function desenharLista() {
@@ -78,17 +66,7 @@ export function telaChamada({ params }) {
       lista.innerHTML = '<section class="cartao"><p>Nenhum aluno cadastrado ainda.</p><a class="botao" href="#/alunos">Cadastrar alunos</a></section>';
       return;
     }
-    const grupos = estado.turmas
-      .filter((t) => !filtroTurma || t.id === filtroTurma)
-      .map((t) => [t, alunos.filter((a) => a.turmaId === t.id)]);
-    const semTurma = alunos.filter((a) => !estado.turmas.some((t) => t.id === a.turmaId));
-    if (semTurma.length) grupos.push([{ nome: 'Sem turma' }, semTurma]);
-
-    lista.innerHTML = grupos.filter(([, l]) => l.length).map(([t, l]) => `
-      <section class="grupo-turma">
-        <h2>${esc(t.nome)} <span class="suave">(${l.length})</span></h2>
-        <ul class="chamada">${l.map(linhaAluno).join('')}</ul>
-      </section>`).join('');
+    lista.innerHTML = `<ul class="chamada">${alunos.map(linhaAluno).join('')}</ul>`;
     atualizarContador();
   }
 

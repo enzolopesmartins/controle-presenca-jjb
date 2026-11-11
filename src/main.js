@@ -11,7 +11,6 @@ import { telaChamada } from './telas/chamada.js';
 import { telaAlunos } from './telas/alunos.js';
 import { telaRelatorio } from './telas/relatorio.js';
 import { telaMais, telaExportar } from './telas/mais.js';
-import { telaTurmas } from './telas/turmas.js';
 import { telaDias } from './telas/dias.js';
 import { telaCiclos } from './telas/ciclos.js';
 
@@ -21,14 +20,13 @@ const ROTAS = {
   alunos: telaAlunos,
   relatorio: telaRelatorio,
   mais: telaMais,
-  turmas: telaTurmas,
   dias: telaDias,
   ciclos: telaCiclos,
   exportar: telaExportar,
 };
 
 // Qual item da barra de baixo fica aceso em cada tela
-const ABA = { turmas: 'mais', dias: 'mais', ciclos: 'mais', exportar: 'mais' };
+const ABA = { dias: 'mais', ciclos: 'mais', exportar: 'mais' };
 
 const barra = document.getElementById('barra');
 const topoData = document.getElementById('topo-data');
@@ -56,7 +54,7 @@ export function desenhar() {
 // menos quando há algo sendo digitado
 let mudouEsperando = false;
 function redesenharSeLivre() {
-  if (!['alunos', 'turmas', 'ciclos', 'dias', ''].includes(rotaAtual().nome)) return;
+  if (!['alunos', 'ciclos', 'dias', ''].includes(rotaAtual().nome)) return;
   const ativo = document.activeElement;
   if (document.querySelector('dialog[open]') || ativo?.matches?.('#app input, #app select, #app textarea')) {
     mudouEsperando = true;

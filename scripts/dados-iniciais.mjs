@@ -33,11 +33,10 @@ await env.withSecurityRulesDisabled(async (c) => {
   const db = c.firestore();
   await setDoc(doc(db, 'professores', user.uid), { nome: 'Professor Teste' });
   await setDoc(doc(db, 'config/aulas'), { diasPadrao: [1, 6] });
-  await setDoc(doc(db, 'turmas/t1'), { nome: 'Turma 1', ativa: true });
-  await setDoc(doc(db, 'turmas/t2'), { nome: 'Turma 2', ativa: true });
   for (const [i, nome] of nomes.entries()) {
     await setDoc(doc(db, 'alunos', `a${i}`), {
-      nome, turmaId: i % 2 ? 't2' : 't1', ativo: true, entrada: somar(inicio, i === 11 ? 20 : -30),
+      nome, ativo: true, telefone: i % 3 ? `(11) 9${String(8000 + i).padStart(4, '0')}-${String(1000 + i)}` : '',
+      observacao: i === 2 ? 'Asma: tem bombinha na mochila' : '', entrada: somar(inicio, i === 11 ? 20 : -30),
     });
   }
   await setDoc(doc(db, 'ciclos/c1'), {

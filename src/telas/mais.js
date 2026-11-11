@@ -1,5 +1,5 @@
 // Menu Mais e a exportação do mês em planilha (serve de backup).
-import { estado, sair, listarPresencas, nomeDaTurma } from '../dados.js';
+import { estado, sair, listarPresencas } from '../dados.js';
 import { app, esc, baixarCSV, confirmar, mensagemErro, STATUS } from '../ui.js';
 import { hojeISO, inicioDoMes, fimDoMes, dataCurta } from '../datas.js';
 
@@ -7,7 +7,6 @@ export function telaMais({ professor }) {
   app.innerHTML = `
     <h1>Mais</h1>
     <ul class="lista-toque menu-mais">
-      <li><a href="#/turmas"><span>Turmas</span><small class="suave">nomes das turmas</small></a></li>
       <li><a href="#/dias"><span>Dias de aula</span><small class="suave">dias da semana, extras e cancelados</small></a></li>
       <li><a href="#/ciclos"><span>Ciclos</span><small class="suave">datas, limite de faltas e renovar</small></a></li>
       <li><a href="#/exportar"><span>Exportar planilha do mês</span><small class="suave">backup: faça uma vez por mês</small></a></li>
@@ -49,11 +48,11 @@ export function telaExportar() {
       const alunos = estado.alunos.filter((a) => ids.has(a.id) ||
         (a.ativo && (a.entrada || '') <= fim));
       baixarCSV(`presenca-${inicio.slice(0, 7)}.csv`, [
-        ['Aluno', 'Turma', ...presencas.map((p) => dataCurta(p.data)), 'Presenças', 'Faltas', 'Justificadas'],
+        ['Aluno', ...presencas.map((p) => dataCurta(p.data)), 'Presenças', 'Faltas', 'Justificadas'],
         ...alunos.map((a) => {
           const st = presencas.map((p) => p.registros[a.id]);
           const n = (s) => st.filter((x) => x === s).length;
-          return [a.nome, nomeDaTurma(a.turmaId), ...st.map((s) => (s ? STATUS[s].texto : '')),
+          return [a.nome, ...st.map((s) => (s ? STATUS[s].texto : '')),
             n('presente'), n('falta'), n('justificada')];
         }),
       ]);
