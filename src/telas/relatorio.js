@@ -247,7 +247,7 @@ function fichaAluno(l, rel) {
     </ul>
     <h3>Aula por aula</h3>
     <ul class="historico">${[...l.historico].reverse().map((h) => `
-      <li class="h-${h.status ?? 'vazio'}"><span>${dataLonga(h.data)}</span>
+      <li class="h-${h.status ?? 'vazio'}"><span>${dataLonga(h.data)}${h.motivo ? `<small class="h-motivo">${esc(h.motivo)}</small>` : ''}</span>
       <strong>${h.status ? STATUS[h.status].texto : 'Não marcado'}</strong></li>`).join('') || '<li>Nenhuma aula no período.</li>'}
     </ul>
     <div class="botoes"><button type="button" class="botao" data-fechar>Fechar</button></div>`);

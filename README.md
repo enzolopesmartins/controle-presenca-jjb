@@ -15,7 +15,8 @@ Endereço: **https://controlepresencajjb.web.app**. Projeto no Firebase: `contro
 - Chamada: na Início, toca no dia do calendário > "Fazer chamada" > todos os alunos em ordem
   alfabética com **P** (presente, verde) e **F** (falta, vermelho). Tocar de novo desmarca.
   Nada é gravado até tocar em **Salvar chamada**; **Limpar dados** apaga as marcações do dia.
-  (O relatório ainda entende "justificada" de chamadas antigas.)
+  Tocar no **F** abre a janela da justificativa (opcional): com motivo vira **falta justificada**
+  (F laranja, não conta no limite); sem motivo é falta normal.
 - Ciclos de 3 meses, com início e fim editáveis e botão Renovar.
 - **Limite de 4 faltas por ciclo** (campo `limiteFaltas` de cada ciclo). Falta justificada não conta.
 - Cor da linha no relatório: sem cor sem faltas, amarela de 1 a 3, vermelha a partir de 4.

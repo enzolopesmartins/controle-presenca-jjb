@@ -24,6 +24,7 @@ export function montarRelatorio({
     .sort((a, b) => a.data.localeCompare(b.data));
   const aulasDadas = doPeriodo.map((p) => p.data);
   const registrosDoDia = Object.fromEntries(doPeriodo.map((p) => [p.data, p.registros]));
+  const motivosDoDia = Object.fromEntries(doPeriodo.map((p) => [p.data, p.justificativas || {}]));
 
   // Aulas previstas que já passaram e não tiveram chamada (hoje não entra: pode estar acontecendo)
   const ultimoDia = fim < hoje ? fim : hoje;
@@ -41,7 +42,7 @@ export function montarRelatorio({
     const historico = aulasDadas
       .filter((d) => registrosDoDia[d][a.id] ||
         (d >= (a.entrada || '') && (!a.saidaEm || d <= a.saidaEm)))
-      .map((d) => ({ data: d, status: registrosDoDia[d][a.id] ?? null }));
+      .map((d) => ({ data: d, status: registrosDoDia[d][a.id] ?? null, motivo: motivosDoDia[d][a.id] ?? '' }));
 
     const conta = { presente: 0, falta: 0, justificada: 0, naoMarcada: 0 };
     const faltasPorDia = {};

@@ -194,6 +194,10 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 .st.escolhido { color: #fff; }
 .st-presente.escolhido { background: var(--presente); border-color: var(--presente); }
 .st-falta.escolhido { background: var(--falta); border-color: var(--falta); }
+.st-falta.escolhido.justificada { background: var(--justificada); border-color: var(--justificada); }
+.aluno-chamada .motivo { display: block; font-weight: 600; font-size: .85rem; color: var(--justificada); margin-top: 2px; }
+.botao.justificar { background: var(--justificada); border-color: var(--justificada); }
+.botoes-falta .botao { flex: 1; }
 
 /* Salvar e limpar ficam fixos em cima da barra de baixo */
 .acoes-chamada {
@@ -391,3 +395,4 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
   .titulo-acao .botao { padding: 10px 14px; }
   h1 { font-size: 1.4rem; }
 }
+.h-motivo { display: block; font-size: .85rem; color: var(--suave); }

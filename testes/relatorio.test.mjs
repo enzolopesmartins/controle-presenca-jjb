@@ -38,7 +38,7 @@ const alunos = [
 ];
 const presencas = [
   { data: '2026-11-02', registros: { a: 'presente', b: 'falta' } },
-  { data: '2026-11-07', registros: { a: 'justificada', b: 'falta' } },
+  { data: '2026-11-07', registros: { a: 'justificada', b: 'falta' }, justificativas: { a: 'Doente' } },
   { data: '2026-11-09', registros: { a: 'presente', b: 'falta', c: 'presente' } },
   { data: '2026-11-14', registros: { a: 'falta', b: 'falta' } },
 ];
@@ -51,6 +51,7 @@ test('relatório do ciclo: contas, justificada não conta, cores', () => {
   assert.equal(por.d, undefined, 'quem saiu antes do ciclo não aparece');
   assert.deepEqual([por.a.presente, por.a.falta, por.a.justificada], [2, 1, 1]);
   assert.equal(por.a.cor, 'amarelo');
+  assert.equal(por.a.historico.find((h) => h.data === '2026-11-07').motivo, 'Doente');
   assert.equal(por.a.freq, 2 / 3);
   assert.equal(por.b.falta, 4);
   assert.equal(por.b.cor, 'vermelho');

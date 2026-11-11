@@ -55,6 +55,15 @@ test('professor marca presença, falta e justificada e desmarca', async () => {
   await assertSucceeds(setDoc(ref, { data: '2026-11-09', registros: { a1: deleteField() } }, { merge: true }));
 });
 
+test('falta justificada com motivo', async () => {
+  await assertSucceeds(setDoc(doc(prof(), 'presencas/20261110'), {
+    data: '2026-11-10', registros: { a1: 'justificada' }, justificativas: { a1: 'Doente' },
+  }));
+  await assertFails(setDoc(doc(prof(), 'presencas/20261111'), {
+    data: '2026-11-11', registros: { a1: 'justificada' }, justificativas: 'Doente',
+  }));
+});
+
 test('presença com status inválido ou ID errado é recusada', async () => {
   const db = prof();
   await assertFails(setDoc(doc(db, 'presencas/20261110'), { data: '2026-11-10', registros: { a1: 'talvez' } }));

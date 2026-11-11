@@ -74,7 +74,8 @@ service cloud.firestore {
       allow read: if ehProfessor();
       allow create, update: if ehProfessor() && idDaData(id, novo().data) &&
         novo().registros is map &&
-        novo().registros.values().hasOnly(['presente', 'falta', 'justificada']);
+        novo().registros.values().hasOnly(['presente', 'falta', 'justificada']) &&
+        (!('justificativas' in novo()) || (novo().justificativas is map && novo().justificativas.size() <= 200));
       allow delete: if ehProfessor(); // botão "Excluir chamada"
     }
   }

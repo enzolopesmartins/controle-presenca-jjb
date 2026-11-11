@@ -3,7 +3,7 @@
 import {
   estado, ouvirChamada, salvarChamada, salvarExcecao, listarPresencas, excluirChamada,
 } from '../dados.js';
-import { app, esc, toast, confirmar, mensagemErro } from '../ui.js';
+import { app, esc, toast, confirmar, mensagemErro, janela } from '../ui.js';
 import {
   hojeISO, temAula, dataLonga, maiuscula, MESES, DIAS_CURTOS, inicioDoMes, fimDoMes,
   somarMeses, somarDias, diaSemana,
@@ -139,6 +139,7 @@ function alunosDoDia(data, registros) {
 export function telaChamada({ params }) {
   const data = dataValida(params[0]);
   let registros = {};
+  let motivos = {}; // justificativa de cada falta justificada
   let salvos = {};
   alterado = false;
 
@@ -168,12 +169,15 @@ export function telaChamada({ params }) {
 
   function linhaAluno(a) {
     const s = registros[a.id];
+    // Falta justificada acende o F em laranja
+    const aceso = (chave) => s === chave || (chave === 'falta' && s === 'justificada');
     return `
       <li class="aluno-chamada ${s ? `marcado-${s}` : ''}" data-aluno="${a.id}">
-        <span class="nome">${esc(a.nome)}${s === 'justificada' ? ' <small class="suave">(justificada)</small>' : ''}${a.ativo ? '' : ' <small class="suave">(retirado)</small>'}</span>
+        <span class="nome">${esc(a.nome)}${a.ativo ? '' : ' <small class="suave">(retirado)</small>'}
+          ${s === 'justificada' ? `<small class="motivo">Justificada${motivos[a.id] ? `: ${esc(motivos[a.id])}` : ''}</small>` : ''}</span>
         <div class="dois-botoes">${Object.entries(STATUS_LISTA).map(([chave, info]) => `
-          <button type="button" class="st st-${chave} ${s === chave ? 'escolhido' : ''}" data-status="${chave}"
-            aria-pressed="${s === chave}" aria-label="${info.texto}: ${esc(a.nome)}">${info.letra}</button>`).join('')}
+          <button type="button" class="st st-${chave} ${aceso(chave) ? 'escolhido' : ''} ${chave === 'falta' && s === 'justificada' ? 'justificada' : ''}"
+            data-status="${chave}" aria-pressed="${aceso(chave)}" aria-label="${info.texto}: ${esc(a.nome)}">${info.letra}</button>`).join('')}
         </div>
       </li>`;
   }
@@ -182,27 +186,41 @@ export function telaChamada({ params }) {
     const alunos = alunosDoDia(data, registros);
     const p = alunos.filter((a) => registros[a.id] === 'presente').length;
     const f = alunos.filter((a) => registros[a.id] === 'falta').length;
+    const j = alunos.filter((a) => registros[a.id] === 'justificada').length;
     const faltam = alunos.filter((a) => !registros[a.id]).length;
     document.getElementById('contador').innerHTML = `
       <span class="n-presente"><strong>${p}</strong> presentes</span>
       <span class="n-falta"><strong>${f}</strong> faltas</span>
+      ${j ? `<span class="n-justificada"><strong>${j}</strong> justificadas</span>` : ''}
       ${faltam ? `<span class="n-falta-marcar"><strong>${faltam}</strong> sem marcar</span>` : ''}
       ${alterado ? '<span class="nao-salvo">não salvo</span>' : ''}`;
   }
 
-  // Um toque marca; tocar de novo no mesmo botão desmarca
+  function definir(id, status, motivo = '') {
+    if (status) registros[id] = status;
+    else delete registros[id];
+    if (status === 'justificada' && motivo) motivos[id] = motivo;
+    else delete motivos[id];
+    alterado = true;
+    const li = lista.querySelector(`[data-aluno="${id}"]`);
+    if (li) li.outerHTML = linhaAluno(estado.alunos.find((a) => a.id === id));
+    if (navigator.vibrate) navigator.vibrate(15);
+    atualizarContador();
+  }
+
+  // P marca presente. F abre a janela da justificativa. Tocar de novo no botão aceso desmarca.
   lista.addEventListener('click', (ev) => {
     const botao = ev.target.closest('[data-status]');
     if (!botao) return;
-    const li = botao.closest('[data-aluno]');
-    const id = li.dataset.aluno;
-    const novo = registros[id] === botao.dataset.status ? null : botao.dataset.status;
-    if (novo) registros[id] = novo;
-    else delete registros[id];
-    alterado = true;
-    li.outerHTML = linhaAluno(estado.alunos.find((a) => a.id === id));
-    if (navigator.vibrate) navigator.vibrate(15);
-    atualizarContador();
+    const id = botao.closest('[data-aluno]').dataset.aluno;
+    const atual = registros[id];
+    if (botao.dataset.status === 'presente') {
+      definir(id, atual === 'presente' ? null : 'presente');
+    } else if (atual === 'falta' || atual === 'justificada') {
+      definir(id, null);
+    } else {
+      janelaFalta(estado.alunos.find((a) => a.id === id), (status, motivo) => definir(id, status, motivo));
+    }
   });
 
   document.getElementById('salvar').addEventListener('click', async () => {
@@ -211,7 +229,7 @@ export function telaChamada({ params }) {
     if (faltam && !await confirmar('Salvar mesmo assim?',
       `${faltam} ${faltam === 1 ? 'aluno ficou' : 'alunos ficaram'} sem marcar. Quem não tem P nem F não conta presença nem falta.`,
       { sim: 'Salvar chamada' })) return;
-    gravarChamada(registros, navigator.onLine
+    gravarChamada(registros, motivos, navigator.onLine
       ? 'Chamada salva com sucesso!'
       : 'Chamada guardada no celular. Envia sozinha quando a internet voltar.');
     location.hash = `#/dia/${data}`;
@@ -223,12 +241,13 @@ export function telaChamada({ params }) {
       tinhaSalvo ? 'Todas as marcações desse dia vão ser apagadas.' : 'As marcações da tela vão ser apagadas.',
       { sim: 'Limpar', perigo: true })) return;
     registros = {};
-    if (tinhaSalvo) gravarChamada({}, 'Dados da chamada apagados');
+    motivos = {};
+    if (tinhaSalvo) gravarChamada({}, {}, 'Dados da chamada apagados');
     else alterado = false;
     desenharLista();
   });
 
-  function gravarChamada(novos, aviso) {
+  function gravarChamada(novos, novosMotivos, aviso) {
     // Dia fora do padrão com chamada vira dia extra (para os avisos e o calendário)
     if (Object.keys(novos).length && !temAula(data, estado.diasPadrao, estado.excecoes)) {
       salvarExcecao(data, 'extra').catch((e) => console.error(e));
@@ -236,19 +255,53 @@ export function telaChamada({ params }) {
     salvos = { ...novos };
     alterado = false;
     toast(aviso, 'ok');
-    salvarChamada(data, novos).catch((e) => {
+    // Só guarda motivo de quem ainda está como justificada
+    const justificativas = Object.fromEntries(Object.entries(novosMotivos)
+      .filter(([id, m]) => novos[id] === 'justificada' && m));
+    salvarChamada(data, novos, justificativas).catch((e) => {
       console.error(e);
       toast(mensagemErro(e), 'erro');
     });
   }
 
   // Carrega o que já foi salvo; depois disso, só atualiza se não houver mudança na tela
-  const parar = ouvirChamada(data, ({ registros: r }) => {
+  const parar = ouvirChamada(data, ({ registros: r, justificativas: j }) => {
     salvos = { ...r };
     if (alterado) return;
     registros = { ...r };
+    motivos = { ...j };
     desenharLista();
   });
 
   return () => { parar(); alterado = false; };
+}
+
+// Janela ao tocar no F: o motivo é opcional.
+// Com motivo = falta justificada (não conta no limite). Sem motivo = falta normal.
+function janelaFalta(aluno, aoEscolher) {
+  const d = janela(`
+    <h2>Falta de ${esc(aluno.nome)}</h2>
+    <form>
+      <label>Justificativa (opcional)
+        <textarea name="motivo" rows="3" maxlength="200" placeholder="Ex.: doente, viagem, prova na escola"></textarea></label>
+      <p class="suave pequeno">Se escrever o motivo, vira <strong>falta justificada</strong> e não conta no limite de faltas.</p>
+      <div class="botoes botoes-falta">
+        <button type="button" class="botao secundario" data-fechar>Cancelar</button>
+        <button type="submit" class="botao perigo" id="confirmar-falta">Marcar falta</button>
+      </div>
+    </form>`);
+  const form = d.querySelector('form');
+  const botao = d.querySelector('#confirmar-falta');
+  form.motivo.addEventListener('input', () => {
+    const tem = form.motivo.value.trim();
+    botao.textContent = tem ? 'Salvar falta justificada' : 'Marcar falta';
+    botao.classList.toggle('perigo', !tem);
+    botao.classList.toggle('justificar', !!tem);
+  });
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const motivo = form.motivo.value.trim();
+    aoEscolher(motivo ? 'justificada' : 'falta', motivo);
+    d.close();
+  });
 }
