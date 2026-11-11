@@ -425,3 +425,6 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 .lista-avisos .av-vermelho { background: var(--vermelho-linha); border-color: var(--falta); }
 .lista-avisos .av-amarelo { background: var(--amarelo-linha); border-color: #e0b100; }
 .lista-avisos li span:last-child { white-space: nowrap; }
+
+/* Assinatura no fim da tela Mais */
+.assinatura { text-align: center; color: #9aa0aa; font-size: .85rem; letter-spacing: .02em; margin: 28px 0 8px; }

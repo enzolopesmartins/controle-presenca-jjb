@@ -13,7 +13,8 @@ export function telaMais({ professor }) {
       <p class="suave">Entrou como <strong>${esc(professor.nome || 'professor')}</strong>.</p>
       <p class="suave pequeno">Em celular dos outros, toque em Sair no fim.</p>
       <button type="button" class="botao secundario" id="sair">Sair</button>
-    </section>`;
+    </section>
+    <p class="assinatura">Desenvolvido por Enzo Lopes</p>`;
   document.getElementById('sair').addEventListener('click', async () => {
     if (await confirmar('Sair do site?', 'Para entrar de novo, use o e-mail e a senha.', { sim: 'Sair' })) sair();
   });
