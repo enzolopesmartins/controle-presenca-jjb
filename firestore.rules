@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // Só o professor (quem tem documento em professores/{uid}) lê ou grava alguma coisa.
-// Ninguém apaga alunos, ciclos ou presenças pelo site. Se precisar, faça pelo console.
+// Ninguém apaga alunos ou ciclos pelo site (a chamada de um dia pode ser excluída). Se precisar, faça pelo console.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -75,7 +75,7 @@ service cloud.firestore {
       allow create, update: if ehProfessor() && idDaData(id, novo().data) &&
         novo().registros is map &&
         novo().registros.values().hasOnly(['presente', 'falta', 'justificada']);
-      allow delete: if false;
+      allow delete: if ehProfessor(); // botão "Excluir chamada"
     }
   }
 }

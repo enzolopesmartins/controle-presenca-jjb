@@ -109,6 +109,9 @@ export const retirarAluno = (id, saidaEm, motivoSaida = '') =>
 export const reativarAluno = (id) =>
   atualizarAluno(id, { ativo: true, saidaEm: deleteField(), motivoSaida: deleteField() });
 
+// Apaga a chamada do dia inteira
+export const excluirChamada = (data) => deleteDoc(doc(db, 'presencas', idDia(data)));
+
 // Grava a chamada inteira do dia (substitui a anterior).
 // registros: { idAluno: 'presente' | 'falta' | 'justificada' }
 export function salvarChamada(data, registros) {
@@ -118,7 +121,7 @@ export function salvarChamada(data, registros) {
 // Escuta a chamada de um dia. fn({ registros, pendente })
 export function ouvirChamada(data, fn) {
   return onSnapshot(doc(db, 'presencas', idDia(data)), { includeMetadataChanges: true }, (s) => {
-    fn({ registros: s.data()?.registros ?? {}, pendente: s.metadata.hasPendingWrites });
+    fn({ registros: s.data()?.registros ?? {}, existe: s.exists(), pendente: s.metadata.hasPendingWrites });
   });
 }
 

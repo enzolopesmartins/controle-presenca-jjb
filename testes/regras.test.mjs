@@ -61,10 +61,14 @@ test('presença com status inválido ou ID errado é recusada', async () => {
   await assertFails(setDoc(doc(db, 'presencas/20261111'), { data: '2026-11-10', registros: {} }));
 });
 
-test('ninguém apaga aluno ou presença pelo site', async () => {
-  const db = prof();
-  await assertFails(deleteDoc(doc(db, 'alunos/a1')));
-  await assertFails(deleteDoc(doc(db, 'presencas/20261109')));
+test('ninguém apaga aluno pelo site', async () => {
+  await assertFails(deleteDoc(doc(prof(), 'alunos/a1')));
+});
+
+test('só o professor exclui a chamada de um dia', async () => {
+  await assertFails(deleteDoc(doc(outro(), 'presencas/20261109')));
+  await assertFails(deleteDoc(doc(anonimo(), 'presencas/20261109')));
+  await assertSucceeds(deleteDoc(doc(prof(), 'presencas/20261109')));
 });
 
 test('retirar aluno é desativar', async () => {

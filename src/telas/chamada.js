@@ -1,7 +1,7 @@
 // Chamada em três passos: calendário (na Início) > tela do dia ("Fazer chamada") > lista com P e F.
 // Na lista, as marcações só vão para o banco ao tocar em "Salvar chamada".
 import {
-  estado, ouvirChamada, salvarChamada, salvarExcecao, listarPresencas,
+  estado, ouvirChamada, salvarChamada, salvarExcecao, listarPresencas, excluirChamada,
 } from '../dados.js';
 import { app, esc, toast, confirmar, mensagemErro } from '../ui.js';
 import {
@@ -94,9 +94,21 @@ export function telaDia({ params }) {
       <p class="suave">${situacao}</p>
       <div id="resumo-dia"><p class="suave">Carregando…</p></div>
       <a class="botao grande" id="fazer" href="#/chamada/${data}">Fazer chamada</a>
+      <button type="button" class="botao perigo-contorno largo" id="excluir" hidden>Excluir chamada</button>
     </section>`;
 
-  return ouvirChamada(data, ({ registros }) => {
+  document.getElementById('excluir').addEventListener('click', async () => {
+    if (!await confirmar('Excluir a chamada?',
+      `A chamada de ${dataLonga(data)} vai ser apagada. Não dá para desfazer.`,
+      { sim: 'Excluir', perigo: true })) return;
+    toast('Chamada excluída', 'ok');
+    excluirChamada(data).catch((e) => {
+      console.error(e);
+      toast(mensagemErro(e), 'erro');
+    });
+  });
+
+  return ouvirChamada(data, ({ registros, existe }) => {
     const valores = Object.values(registros);
     const p = valores.filter((s) => s === 'presente').length;
     const f = valores.filter((s) => s === 'falta').length;
@@ -109,6 +121,7 @@ export function telaDia({ params }) {
          ${j ? `<span class="n-justificada"><strong>${j}</strong> justificadas</span>` : ''}</p>`
       : '<p>A chamada desse dia ainda não foi feita.</p>';
     document.getElementById('fazer').textContent = valores.length ? 'Ver ou corrigir a chamada' : 'Fazer chamada';
+    document.getElementById('excluir').hidden = !existe;
   });
 }
 
