@@ -52,8 +52,8 @@ code { font-size: .85em; background: #eef0f4; padding: 1px 4px; border-radius: 4
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 16px; padding-top: max(10px, env(safe-area-inset-top));
 }
-.marca { color: #fff; font-weight: 700; text-decoration: none; font-size: 1.1rem; }
-.topo-data { font-size: .9rem; opacity: .85; text-align: right; }
+.marca { color: #fff; font-weight: 700; text-decoration: none; font-size: 1.05rem; white-space: nowrap; }
+.topo-data { font-size: .85rem; opacity: .85; text-align: right; line-height: 1.2; }
 
 main {
   max-width: 760px; margin: 0 auto;
