@@ -1,6 +1,6 @@
 // Relatório de frequência (e de fim de ciclo): resumo, tabela por aluno, por aula e grade.
 import { estado, cicloAtivo, listarPresencas } from '../dados.js';
-import { app, esc, pct, chips, janela, baixarCSV, STATUS, mensagemErro } from '../ui.js';
+import { app, esc, pct, chips, janela, STATUS, mensagemErro } from '../ui.js';
 import { montarRelatorio, ordenar } from '../relatorio.js';
 import {
   hojeISO, dataCurta, dataLonga, diaSemana, DIAS, DIAS_CURTOS, inicioDoMes, noDia,
@@ -11,7 +11,6 @@ import { janelaRetirar } from './alunos.js';
 const filtro = { periodo: null, inicio: '', fim: '', aba: 'alunos', ordem: 'faltas' };
 let ultimo = null; // { chave, presencas }
 
-const COR_TEXTO = { vermelho: 'Chegou ao limite', amarelo: 'Com faltas', '': 'Sem faltas' }; // planilha
 
 function periodoEscolhido() {
   const hoje = hojeISO();
@@ -115,11 +114,8 @@ function desenhar(conteudo, rel, p) {
 
     <section class="cartao nao-imprimir exportar">
       <h2>Guardar ou mostrar</h2>
-      <div class="botoes">
-        <button type="button" class="botao secundario" id="csv-resumo">Planilha do resumo</button>
-        <button type="button" class="botao secundario" id="csv-detalhe">Planilha aula por aula</button>
-        <button type="button" class="botao secundario" id="imprimir">Imprimir ou PDF</button>
-      </div>
+      <button type="button" class="botao secundario largo" id="imprimir">Salvar em PDF ou imprimir</button>
+      <p class="suave pequeno">No celular, escolha "Salvar como PDF" para guardar ou mandar no WhatsApp.</p>
       <p class="suave pequeno">Frequência = presenças ÷ (presenças + faltas). Falta justificada fica de fora.</p>
     </section>`;
 
@@ -128,8 +124,6 @@ function desenhar(conteudo, rel, p) {
     conteudo.querySelectorAll('[data-aba]').forEach((c) => c.classList.toggle('ativo', c === b));
     desenharAba(rel, p);
   }));
-  document.getElementById('csv-resumo').onclick = () => csvResumo(rel, p);
-  document.getElementById('csv-detalhe').onclick = () => csvDetalhe(rel, p);
   document.getElementById('imprimir').onclick = () => window.print();
   desenharAba(rel, p);
 }
@@ -259,24 +253,3 @@ function fichaAluno(l, rel) {
     <div class="botoes"><button type="button" class="botao" data-fechar>Fechar</button></div>`);
 }
 
-const nomeArquivo = (p, tipo) => `presenca-${tipo}-${p.inicio}-a-${p.fim}.csv`;
-
-function csvResumo(rel, p) {
-  const linhas = ordenar(rel.linhas, 'nome');
-  baixarCSV(nomeArquivo(p, 'resumo'), [
-    ['Aluno', 'Ativo', 'Presenças', 'Faltas', 'Justificadas', 'Não marcadas', 'Frequência', 'Faltas até o limite', 'Situação'],
-    ...linhas.map((l) => [l.nome, l.ativo ? 'sim' : 'não', l.presente, l.falta,
-      l.justificada, l.naoMarcada, pct(l.freq), l.restantes, COR_TEXTO[l.cor]]),
-  ]);
-}
-
-function csvDetalhe(rel, p) {
-  const linhas = ordenar(rel.linhas, 'nome');
-  baixarCSV(nomeArquivo(p, 'aulas'), [
-    ['Aluno', ...rel.aulasDadas.map((d) => dataCurta(d))],
-    ...linhas.map((l) => {
-      const s = Object.fromEntries(l.historico.map((h) => [h.data, h.status]));
-      return [l.nome, ...rel.aulasDadas.map((d) => (s[d] ? STATUS[s[d]].texto : ''))];
-    }),
-  ]);
-}
