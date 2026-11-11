@@ -2,6 +2,9 @@
 
 export const FUSO = 'America/Sao_Paulo';
 
+// O controle de presença começou a valer aqui: antes disso não existe "aula sem chamada"
+export const INICIO_DO_SISTEMA = '2026-11-01';
+
 export const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 export const DIAS_CURTOS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 export const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho',

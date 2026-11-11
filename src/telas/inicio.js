@@ -2,7 +2,7 @@ import { estado, cicloAtivo, listarPresencas } from '../dados.js';
 import { app, esc } from '../ui.js';
 import { montarCalendario } from './chamada.js';
 import {
-  hojeISO, temAula, proximaAula, dataLonga, dataCurta, aulasNoPeriodo, somarDias,
+  hojeISO, temAula, proximaAula, dataLonga, dataCurta, aulasNoPeriodo, somarDias, INICIO_DO_SISTEMA,
 } from '../datas.js';
 
 export function telaInicio({ professor }) {
@@ -52,9 +52,11 @@ export function telaInicio({ professor }) {
   avisarAulasSemChamada(ciclo, hoje);
 }
 
-// Aulas passadas do ciclo (ou das últimas 4 semanas) sem nenhuma marcação
+// Aulas passadas do ciclo (ou das últimas 4 semanas) sem nenhuma marcação, desde 01/11/2026
 async function avisarAulasSemChamada(ciclo, hoje) {
-  const inicio = ciclo?.inicio ?? somarDias(hoje, -28);
+  // Só a partir de quando o controle começou a valer (1º de novembro de 2026)
+  const base = ciclo?.inicio ?? somarDias(hoje, -28);
+  const inicio = base < INICIO_DO_SISTEMA ? INICIO_DO_SISTEMA : base;
   const ontem = somarDias(hoje, -1);
   if (inicio > ontem) return;
   const previstas = aulasNoPeriodo(inicio, ontem, estado.diasPadrao, estado.excecoes);

@@ -1,5 +1,5 @@
 // Cálculos do relatório de frequência. Sem Firebase aqui: recebe os dados prontos.
-import { aulasNoPeriodo, diaSemana } from './datas.js';
+import { aulasNoPeriodo, diaSemana, INICIO_DO_SISTEMA } from './datas.js';
 
 // Sem faltas: sem cor | de 1 até o limite - 1: amarelo | chegou ao limite: vermelho
 export function corDaLinha(faltas, limite) {
@@ -30,7 +30,7 @@ export function montarRelatorio({
   const ultimoDia = fim < hoje ? fim : hoje;
   const semChamada = inicio <= ultimoDia
     ? aulasNoPeriodo(inicio, ultimoDia, diasPadrao, excecoes)
-      .filter((d) => d < hoje && !registrosDoDia[d])
+      .filter((d) => d < hoje && d >= INICIO_DO_SISTEMA && !registrosDoDia[d])
     : [];
 
   const comRegistro = (a) => aulasDadas.some((d) => registrosDoDia[d][a.id]);

@@ -6,7 +6,7 @@ import {
 import { app, esc, toast, confirmar, mensagemErro, janela } from '../ui.js';
 import {
   hojeISO, temAula, dataLonga, maiuscula, MESES, DIAS_CURTOS, inicioDoMes, fimDoMes,
-  somarMeses, somarDias, diaSemana,
+  somarMeses, somarDias, diaSemana, INICIO_DO_SISTEMA,
 } from '../datas.js';
 
 const STATUS_LISTA = {
@@ -48,7 +48,7 @@ export function montarCalendario(el) {
       let classe = '';
       if (feitas.has(d)) classe = 'feita';
       else if (excecoes[d]?.tipo === 'cancelada') classe = 'cancelada';
-      else if (aula && d < hoje) classe = 'pendente';
+      else if (aula && d < hoje && d >= INICIO_DO_SISTEMA) classe = 'pendente';
       else if (aula) classe = 'aula';
       celulas.push(`<button type="button" class="dia ${classe} ${d === hoje ? 'hoje' : ''}" data-dia="${d}"
         aria-label="${dataLonga(d)}">${Number(d.slice(8))}</button>`);

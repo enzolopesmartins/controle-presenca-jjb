@@ -75,3 +75,8 @@ test('sequências da ficha do aluno', () => {
   assert.equal(maiorSequenciaDeFaltas(h('falta', 'falta', 'justificada', 'falta', 'presente', 'falta')), 3);
   assert.equal(presencasSeguidasAgora(h('falta', 'presente', 'justificada', 'presente', null)), 2);
 });
+
+test('aulas sem chamada só a partir de 01/11/2026', () => {
+  const r = montarRelatorio({ ...base, inicio: '2026-10-01' });
+  assert.deepEqual(r.semChamada, ['2026-11-16']);
+});
