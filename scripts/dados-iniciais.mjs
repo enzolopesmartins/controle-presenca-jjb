@@ -35,7 +35,7 @@ await env.withSecurityRulesDisabled(async (c) => {
   await setDoc(doc(db, 'config/aulas'), { diasPadrao: [1, 6] });
   for (const [i, nome] of nomes.entries()) {
     await setDoc(doc(db, 'alunos', `a${i}`), {
-      nome, ativo: true, telefone: i % 3 ? `(11) 9${String(8000 + i).padStart(4, '0')}-${String(1000 + i)}` : '',
+      nome, ativo: true,
       observacao: i === 2 ? 'Asma: tem bombinha na mochila' : '', entrada: somar(inicio, i === 11 ? 20 : -30),
     });
   }

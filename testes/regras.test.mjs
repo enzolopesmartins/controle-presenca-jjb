@@ -71,9 +71,9 @@ test('retirar aluno é desativar', async () => {
   await assertSucceeds(updateDoc(doc(prof(), 'alunos/a1'), { ativo: false, saidaEm: '2026-11-20', motivoSaida: 'faltas' }));
 });
 
-test('aluno com telefone e observação', async () => {
+test('aluno com observação', async () => {
   await assertSucceeds(setDoc(doc(prof(), 'alunos/x'), {
-    nome: 'Gael', ativo: true, entrada: '2026-11-10', telefone: '(11) 99999-8888', observacao: 'Alergia a amendoim',
+    nome: 'Gael', ativo: true, entrada: '2026-11-10', observacao: 'Alergia a amendoim',
   }));
   await assertFails(setDoc(doc(prof(), 'alunos/y'), {
     nome: 'Gael', ativo: true, entrada: '2026-11-10', observacao: 'x'.repeat(501),

@@ -7,7 +7,9 @@ import { hojeISO, dataLonga } from './datas.js';
 import { iniciarAtualizacao } from './atualizacao.js';
 import { telaLogin } from './telas/login.js';
 import { telaInicio } from './telas/inicio.js';
-import { telaChamada } from './telas/chamada.js';
+import {
+  telaDia, telaChamada, chamadaComAlteracao,
+} from './telas/chamada.js';
 import { telaAlunos } from './telas/alunos.js';
 import { telaRelatorio } from './telas/relatorio.js';
 import { telaMais, telaExportar } from './telas/mais.js';
@@ -16,7 +18,9 @@ import { telaCiclos } from './telas/ciclos.js';
 
 const ROTAS = {
   '': telaInicio,
+  // #/dia/AAAA-MM-DD = tela do dia; #/chamada/AAAA-MM-DD = lista com P e F
   chamada: telaChamada,
+  dia: telaDia,
   alunos: telaAlunos,
   relatorio: telaRelatorio,
   mais: telaMais,
@@ -26,7 +30,7 @@ const ROTAS = {
 };
 
 // Qual item da barra de baixo fica aceso em cada tela
-const ABA = { dias: 'mais', ciclos: 'mais', exportar: 'mais' };
+const ABA = { dia: '', chamada: '', dias: 'mais', ciclos: 'mais', exportar: 'mais' };
 
 const barra = document.getElementById('barra');
 const topoData = document.getElementById('topo-data');
@@ -68,7 +72,23 @@ aoMudarEstado(redesenharSeLivre);
 window.addEventListener('janela-fechada', () => { if (mudouEsperando) setTimeout(redesenharSeLivre); });
 document.addEventListener('focusout', () => { if (mudouEsperando) setTimeout(redesenharSeLivre, 50); });
 
-window.addEventListener('hashchange', () => { window.scrollTo(0, 0); desenhar(); });
+// Saindo da chamada sem salvar: pergunta antes
+let hashAtual = location.hash;
+let voltando = false;
+window.addEventListener('hashchange', () => {
+  if (voltando) { voltando = false; return; }
+  if (chamadaComAlteracao() && !window.confirm('A chamada não foi salva. Sair mesmo assim?')) {
+    voltando = true;
+    location.hash = hashAtual;
+    return;
+  }
+  hashAtual = location.hash;
+  window.scrollTo(0, 0);
+  desenhar();
+});
+window.addEventListener('beforeunload', (ev) => {
+  if (chamadaComAlteracao()) ev.preventDefault();
+});
 
 aoMudarLogin(async (usuario) => {
   limpar?.();

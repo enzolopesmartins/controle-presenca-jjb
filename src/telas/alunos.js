@@ -2,9 +2,7 @@
 import {
   estado, criarAluno, atualizarAluno, retirarAluno, reativarAluno,
 } from '../dados.js';
-import {
-  app, esc, gravar, janela, chips, erroTela, aoEnviar, formatarTelefone, telefoneTexto, linkWhats,
-} from '../ui.js';
+import { app, esc, gravar, janela, chips, erroTela, aoEnviar } from '../ui.js';
 import { hojeISO, dataCurta } from '../datas.js';
 
 let busca = '';
@@ -39,7 +37,7 @@ export function telaAlunos() {
         <ul class="lista-toque">${base.map((a) => `
           <li><button type="button" data-aluno="${a.id}">
             <span>${esc(a.nome)}</span>
-            <small class="suave">${a.ativo ? `desde ${dataCurta(a.entrada, { ano: false })}` : `saiu em ${dataCurta(a.saidaEm)}`}${a.telefone ? ` · ${esc(telefoneTexto(a.telefone))}` : ''}</small>
+            <small class="suave">${a.ativo ? `desde ${dataCurta(a.entrada, { ano: false })}` : `saiu em ${dataCurta(a.saidaEm)}`}${a.observacao ? ' · tem observação' : ''}</small>
           </button></li>`).join('')}
         </ul>`;
   };
@@ -61,15 +59,12 @@ export function telaAlunos() {
   desenharLista();
 }
 
-// Cadastro e edição. No cadastro, a janela continua aberta para o próximo.
+// Cadastro e edição. Ao salvar, mostra o aviso e volta para a lista.
 function janelaAluno(aluno) {
   const d = janela(`
     <h2>${aluno ? 'Editar aluno' : 'Novo aluno'}</h2>
     <form id="form-aluno">
       <label>Nome ou apelido <input name="nome" maxlength="80" required value="${esc(aluno?.nome ?? '')}" autocomplete="off" /></label>
-      <label>Telefone do responsável <input name="telefone" type="tel" inputmode="tel" maxlength="20"
-        placeholder="(11) 99999-8888" value="${esc(telefoneTexto(aluno?.telefone))}" autocomplete="off" /></label>
-      ${aluno?.telefone ? `<p><a class="botao secundario pequeno" href="${linkWhats(aluno.telefone)}" target="_blank" rel="noopener">Chamar o responsável no WhatsApp</a></p>` : ''}
       <label>Observação <textarea name="observacao" rows="3" maxlength="500"
         placeholder="Ex.: alergia, quem busca, combinado com a família">${esc(aluno?.observacao ?? '')}</textarea></label>
       <p class="erro" hidden></p>
@@ -90,9 +85,6 @@ function janelaAluno(aluno) {
   aoEnviar(form, (dados) => {
     const nome = dados.get('nome').trim().replace(/\s+/g, ' ');
     if (!nome) throw erroTela('Digite o nome.');
-    const digitado = dados.get('telefone').trim();
-    const telefone = digitado ? formatarTelefone(digitado) : '';
-    if (telefone === null) throw erroTela('Telefone com DDD, por exemplo (11) 99999-8888.');
     const observacao = dados.get('observacao').trim();
     const repetido = estado.alunos.find((a) => a.id !== aluno?.id && normalizar(a.nome) === normalizar(nome));
     if (repetido && !form.dataset.confirmouRepetido) {
@@ -100,13 +92,11 @@ function janelaAluno(aluno) {
       throw erroTela(`Já existe "${repetido.nome}". Se for outra criança, toque de novo para cadastrar mesmo assim.`);
     }
     if (aluno) {
-      gravar(atualizarAluno(aluno.id, { nome, telefone, observacao }), 'Aluno salvo');
+      gravar(atualizarAluno(aluno.id, { nome, observacao }), 'Aluno salvo com sucesso');
       d.close();
     } else {
-      gravar(criarAluno({ nome, telefone, observacao }), `${nome} cadastrado`);
-      form.reset();
-      delete form.dataset.confirmouRepetido;
-      form.nome.focus();
+      gravar(criarAluno({ nome, observacao }), `${nome} cadastrado com sucesso`);
+      d.close();
     }
   });
   form.nome.addEventListener('input', () => delete form.dataset.confirmouRepetido);

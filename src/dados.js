@@ -95,9 +95,9 @@ export function salvarExcecao(data, tipo, motivo = '') {
 
 export const removerExcecao = (data) => deleteDoc(doc(db, 'diasAula', idDia(data)));
 
-export function criarAluno({ nome, telefone = '', observacao = '' }) {
+export function criarAluno({ nome, observacao = '' }) {
   return addDoc(collection(db, 'alunos'), {
-    nome, telefone, observacao, ativo: true, entrada: hojeISO(), criadoEm: serverTimestamp(),
+    nome, observacao, ativo: true, entrada: hojeISO(), criadoEm: serverTimestamp(),
   });
 }
 
@@ -109,21 +109,10 @@ export const retirarAluno = (id, saidaEm, motivoSaida = '') =>
 export const reativarAluno = (id) =>
   atualizarAluno(id, { ativo: true, saidaEm: deleteField(), motivoSaida: deleteField() });
 
-// status: 'presente' | 'falta' | 'justificada' | null (desmarcar)
-export function marcar(data, alunoId, status) {
-  return setDoc(doc(db, 'presencas', idDia(data)), {
-    data,
-    registros: { [alunoId]: status ?? deleteField() },
-    atualizadoEm: serverTimestamp(),
-  }, { merge: true });
-}
-
-export function marcarVarios(data, alunoIds, status) {
-  return setDoc(doc(db, 'presencas', idDia(data)), {
-    data,
-    registros: Object.fromEntries(alunoIds.map((id) => [id, status])),
-    atualizadoEm: serverTimestamp(),
-  }, { merge: true });
+// Grava a chamada inteira do dia (substitui a anterior).
+// registros: { idAluno: 'presente' | 'falta' | 'justificada' }
+export function salvarChamada(data, registros) {
+  return setDoc(doc(db, 'presencas', idDia(data)), { data, registros, atualizadoEm: serverTimestamp() });
 }
 
 // Escuta a chamada de um dia. fn({ registros, pendente })

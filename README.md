@@ -10,9 +10,12 @@ Endereço: **https://controlepresencajjb.web.app**. Projeto no Firebase: `contro
 
 - Só o professor entra (e-mail e senha). Não há tela de criar conta.
 - **Sem turmas:** uma chamada por dia com todos os alunos.
-- Aluno: nome (ou apelido), telefone do responsável (com botão do WhatsApp) e observação.
+- Aluno: nome (ou apelido) e observação.
 - Dias de aula padrão: segunda e sábado. Dá para acrescentar dia extra ou cancelar um dia.
-- Três status: presente, falta e falta justificada. Tocar de novo no mesmo botão desmarca.
+- Chamada: na Início, toca no dia do calendário > "Fazer chamada" > todos os alunos em ordem
+  alfabética com **P** (presente, verde) e **F** (falta, vermelho). Tocar de novo desmarca.
+  Nada é gravado até tocar em **Salvar chamada**; **Limpar dados** apaga as marcações do dia.
+  (O relatório ainda entende "justificada" de chamadas antigas.)
 - Ciclos de 3 meses, com início e fim editáveis e botão Renovar.
 - **Limite de 4 faltas por ciclo** (campo `limiteFaltas` de cada ciclo). Falta justificada não conta.
 - Cor da linha no relatório: sem cor sem faltas, amarela de 1 a 3, vermelha a partir de 4.
@@ -22,8 +25,8 @@ Endereço: **https://controlepresencajjb.web.app**. Projeto no Firebase: `contro
 
 ## Telas
 
-Entrar (com "Esqueci a senha"), Início (chamada de hoje, próxima aula, aulas sem chamada),
-Chamada (data, contador, marcar quem falta como presente), Alunos, Dias de aula (calendário), Ciclos, Relatório (resumo, tabela por aluno, ficha, por aula, grade,
+Entrar (com "Esqueci a senha" e o olho para ver a senha), Início (calendário da chamada,
+próxima aula, aulas sem chamada), Dia ("Fazer chamada"), Chamada (P e F, salvar e limpar), Alunos, Dias de aula (calendário), Ciclos, Relatório (resumo, tabela por aluno, ficha, por aula, grade,
 avisos, planilhas e impressão) e Exportar planilha do mês (backup).
 
 Funciona sem internet: as marcações ficam guardadas no aparelho e vão para o banco quando a
@@ -86,7 +89,7 @@ Regras do banco: `npx firebase deploy --only firestore`.
 
 ## Segurança e LGPD
 
-Das crianças: só o nome (ou apelido), o telefone do responsável e a observação. Sem Analytics nem scripts de terceiros. Exclusão a pedido
+Das crianças: só o nome (ou apelido) e a observação. Sem Analytics nem scripts de terceiros. Exclusão a pedido
 do responsável: pelo console, trocando o nome por um código. Backup: exportar a planilha uma
 vez por mês.
 

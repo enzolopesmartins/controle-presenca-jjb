@@ -1,8 +1,6 @@
 // Relatório de frequência (e de fim de ciclo): resumo, tabela por aluno, por aula e grade.
 import { estado, cicloAtivo, listarPresencas } from '../dados.js';
-import {
-  app, esc, pct, chips, janela, baixarCSV, STATUS, mensagemErro, telefoneTexto, linkWhats,
-} from '../ui.js';
+import { app, esc, pct, chips, janela, baixarCSV, STATUS, mensagemErro } from '../ui.js';
 import { montarRelatorio, ordenar } from '../relatorio.js';
 import {
   hojeISO, dataCurta, dataLonga, diaSemana, DIAS, DIAS_CURTOS, inicioDoMes, noDia,
@@ -141,7 +139,7 @@ function avisos(rel) {
   const itens = [];
   if (rel.semChamada.length) {
     itens.push(`<li><strong>${rel.semChamada.length} ${rel.semChamada.length === 1 ? 'aula passada' : 'aulas passadas'} sem chamada:</strong>
-      ${rel.semChamada.slice(-6).map((d) => `<a href="#/chamada/${d}">${dataCurta(d, { ano: false })}</a>`).join(', ')}
+      ${rel.semChamada.slice(-6).map((d) => `<a href="#/dia/${d}">${dataCurta(d, { ano: false })}</a>`).join(', ')}
       ${rel.semChamada.length > 6 ? '…' : ''}</li>`);
   }
   if (rel.novosNoMeio.length) {
@@ -216,7 +214,7 @@ function abaPorAula(rel) {
       <table class="tabela">
         <thead><tr><th>Aula</th><th>Vieram</th><th>Faltaram</th><th>Justif.</th><th>Comparec.</th></tr></thead>
         <tbody>${[...rel.porAula].reverse().map((a) => `
-          <tr><td><a href="#/chamada/${a.data}">${DIAS_CURTOS[diaSemana(a.data)]} ${dataCurta(a.data, { ano: false })}</a></td>
+          <tr><td><a href="#/dia/${a.data}">${DIAS_CURTOS[diaSemana(a.data)]} ${dataCurta(a.data, { ano: false })}</a></td>
           <td>${a.presente}</td><td>${a.falta}</td><td>${a.justificada}</td><td>${pct(a.pct)}</td></tr>`).join('')}
         </tbody>
       </table>
@@ -249,8 +247,6 @@ function fichaAluno(l, rel) {
   janela(`
     <h2>${esc(l.nome)}</h2>
     <p class="suave">${l.ativo ? `aluno desde ${dataCurta(l.entrada)}` : `retirado em ${dataCurta(l.saidaEm)}`}</p>
-    ${l.telefone ? `<p>Responsável: <strong>${esc(telefoneTexto(l.telefone))}</strong>
-      <a class="botao secundario pequeno" href="${linkWhats(l.telefone)}" target="_blank" rel="noopener">WhatsApp</a></p>` : ''}
     ${l.observacao ? `<p class="alerta">${esc(l.observacao)}</p>` : ''}
     <div class="ficha-numeros linha-${l.cor || 'ok'}">
       <span><strong>${l.presente}</strong> presenças</span>

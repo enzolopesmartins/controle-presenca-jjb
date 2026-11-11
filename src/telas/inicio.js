@@ -1,5 +1,6 @@
-import { estado, cicloAtivo, salvarExcecao, listarPresencas } from '../dados.js';
-import { app, esc, gravar } from '../ui.js';
+import { estado, cicloAtivo, listarPresencas } from '../dados.js';
+import { app, esc } from '../ui.js';
+import { montarCalendario } from './chamada.js';
 import {
   hojeISO, temAula, proximaAula, dataLonga, dataCurta, aulasNoPeriodo, somarDias,
 } from '../datas.js';
@@ -19,16 +20,17 @@ export function telaInicio({ professor }) {
     <section class="cartao destaque-hoje">
       ${aulaHoje ? `
         <p class="rotulo">Hoje tem aula</p>
-        <a class="botao grande" href="#/chamada/${hoje}">Fazer chamada de hoje</a>
+        <a class="botao grande" href="#/dia/${hoje}">Chamada de hoje</a>
         ${excecoes[hoje]?.tipo === 'extra' ? '<p class="suave">Dia extra.</p>' : ''}
       ` : `
         <p class="rotulo">Hoje não tem aula</p>
         ${excecoes[hoje]?.tipo === 'cancelada'
           ? `<p class="suave">Aula cancelada${excecoes[hoje].motivo ? `: ${esc(excecoes[hoje].motivo)}` : ''}.</p>` : ''}
-        <button type="button" class="botao secundario" id="abrir-extra">Abrir um dia extra hoje</button>
       `}
       ${proxima ? `<p class="suave">Próxima aula: <strong>${dataLonga(proxima)}</strong></p>` : ''}
     </section>
+
+    <section class="cartao" id="calendario-inicio"></section>
 
     <div id="pendentes"></div>
 
@@ -45,10 +47,7 @@ export function telaInicio({ professor }) {
         <a href="#/relatorio">Ver o relatório</a> e <a href="#/ciclos">renovar</a>.</p>` : ''}
     </section>`;
 
-  document.getElementById('abrir-extra')?.addEventListener('click', () => {
-    gravar(salvarExcecao(hoje, 'extra'), 'Dia extra aberto');
-    location.hash = `#/chamada/${hoje}`;
-  });
+  montarCalendario(document.getElementById('calendario-inicio'));
 
   avisarAulasSemChamada(ciclo, hoje);
 }
@@ -71,7 +70,7 @@ async function avisarAulasSemChamada(ciclo, hoje) {
         <h2>Aulas sem chamada</h2>
         <p class="suave">Se não teve aula nesses dias, cancele em <a href="#/dias">Dias de aula</a>.</p>
         <ul class="lista-links">${faltando.slice(0, 8).map((d) => `
-          <li><a href="#/chamada/${d}">${dataLonga(d)}</a></li>`).join('')}</ul>
+          <li><a href="#/dia/${d}">${dataLonga(d)}</a></li>`).join('')}</ul>
         ${faltando.length > 8 ? `<p class="suave">E mais ${faltando.length - 8}.</p>` : ''}
       </section>`;
   } catch (e) {

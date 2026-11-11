@@ -56,7 +56,6 @@ service cloud.firestore {
       allow read: if ehProfessor();
       allow create, update: if ehProfessor() && textoOk(novo().nome, 80) &&
         novo().ativo is bool && dataOk(novo().entrada) &&
-        (!('telefone' in novo()) || (novo().telefone is string && novo().telefone.size() <= 20)) &&
         (!('observacao' in novo()) || (novo().observacao is string && novo().observacao.size() <= 500));
       allow delete: if false;
     }

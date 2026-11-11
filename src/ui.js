@@ -29,20 +29,6 @@ const MENSAGENS_ERRO = {
 };
 export const mensagemErro = (e) => MENSAGENS_ERRO[e?.code] ?? 'Algo deu errado. Tente de novo.';
 
-// Qualquer jeito de digitar -> '(11) 99999-8888'. Devolve null se não tiver DDD + número.
-export function formatarTelefone(telefone) {
-  let d = String(telefone ?? '').replace(/\D/g, '');
-  if (d.length > 11 && d.startsWith('55')) d = d.slice(2);
-  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
-  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
-  return null;
-}
-export const telefoneTexto = (t) => formatarTelefone(t) ?? t ?? '';
-export const linkWhats = (telefone) => {
-  const d = String(telefone).replace(/\D/g, '');
-  return `https://wa.me/${d.length > 11 ? d : `55${d}`}`;
-};
-
 // Aviso rápido embaixo da tela
 let tempoToast;
 export function toast(texto, tipo = '') {
@@ -56,7 +42,7 @@ export function toast(texto, tipo = '') {
   el.textContent = texto;
   el.className = `toast visivel ${tipo}`;
   clearTimeout(tempoToast);
-  tempoToast = setTimeout(() => { el.className = 'toast'; }, 2600);
+  tempoToast = setTimeout(() => { el.className = 'toast'; }, 3500);
 }
 
 // Gravação sem esperar a internet: se o banco recusar, avisa
