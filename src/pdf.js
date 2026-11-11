@@ -7,7 +7,13 @@ import { ordenar } from './relatorio.js';
 
 const pct = (n) => (n == null ? '-' : `${Math.round(n * 100)}%`);
 const SITUACAO = { vermelho: 'Chegou ao limite', amarelo: 'Com faltas', '': 'Sem faltas' };
-const FUNDO = { vermelho: [255, 222, 222], amarelo: [255, 246, 204] };
+// Cores da linha: verde sem faltas, amarelo de 1 a 3, vermelho quando chega ao limite.
+// Quem ainda não tem nenhuma marcação fica sem cor.
+const FUNDO = { vermelho: [255, 214, 214], amarelo: [255, 241, 184], verde: [220, 245, 228] };
+const FAIXA = { vermelho: [198, 40, 40], amarelo: [224, 177, 0], verde: [21, 128, 61], nada: [200, 204, 212] };
+const TEXTO = { vermelho: [176, 24, 24], amarelo: [140, 98, 0], verde: [21, 110, 52] };
+const corPDF = (l) => l.cor || (l.presente + l.justificada > 0 ? 'verde' : 'nada');
+const situacao = (l) => (corPDF(l) === 'nada' ? 'Sem marcação' : SITUACAO[l.cor]);
 
 export function montarPDF(rel, titulo) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
@@ -27,12 +33,29 @@ export function montarPDF(rel, titulo) {
   autoTable(doc, {
     startY: 48,
     head: [['Aluno', 'Presenças', 'Faltas', 'Justif.', 'Frequência', 'Situação']],
-    body: linhas.map((l) => [l.nome, l.presente, l.falta, l.justificada, pct(l.freq), SITUACAO[l.cor]]),
-    styles: { fontSize: 10, cellPadding: 2 },
-    headStyles: { fillColor: [20, 33, 61] },
-    columnStyles: { 1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' } },
+    body: linhas.map((l) => [l.nome, l.presente, l.falta, l.justificada, pct(l.freq), situacao(l)]),
+    theme: 'plain',
+    styles: { fontSize: 10, cellPadding: { top: 2, bottom: 2, left: 2, right: 2 }, lineColor: [225, 228, 234], lineWidth: { bottom: 0.2 } },
+    headStyles: { fillColor: [20, 33, 61], textColor: 255, fontStyle: 'bold' },
+    columnStyles: {
+      0: { cellPadding: { top: 2, bottom: 2, left: 4, right: 2 } },
+      1: { halign: 'center' }, 2: { halign: 'center' }, 3: { halign: 'center' }, 4: { halign: 'center' },
+    },
     didParseCell: (c) => {
-      if (c.section === 'body' && FUNDO[linhas[c.row.index].cor]) c.cell.styles.fillColor = FUNDO[linhas[c.row.index].cor];
+      if (c.section !== 'body') return;
+      const cor = corPDF(linhas[c.row.index]);
+      if (FUNDO[cor]) c.cell.styles.fillColor = FUNDO[cor];
+      // Faltas e situação em destaque, na cor da linha
+      if (TEXTO[cor] && (c.column.index === 2 || c.column.index === 5)) {
+        c.cell.styles.textColor = TEXTO[cor];
+        c.cell.styles.fontStyle = 'bold';
+      }
+    },
+    // Faixa colorida na esquerda de cada linha, igual no site
+    didDrawCell: (c) => {
+      if (c.section !== 'body' || c.column.index !== 0) return;
+      doc.setFillColor(...FAIXA[corPDF(linhas[c.row.index])]);
+      doc.rect(c.cell.x, c.cell.y, 1.6, c.cell.height, 'F');
     },
   });
 

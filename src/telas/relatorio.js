@@ -185,7 +185,7 @@ function abaAlunos(rel) {
       ${chips([['faltas', 'Mais faltas'], ['nome', 'Nome']], filtro.ordem, 'ordem')}
     </div>
     <ul class="lista-relatorio">${linhas.map((l) => `
-      <li class="linha-${l.cor || 'ok'}" data-ficha="${l.id}" tabindex="0" role="button">
+      <li class="linha-${l.cor || (l.presente + l.justificada > 0 ? 'verde' : 'ok')}" data-ficha="${l.id}" tabindex="0" role="button">
         <div class="lr-topo">
           <span class="nome">${esc(l.nome)}</span>
           <span class="lr-faltas"><strong>${l.falta}</strong> ${l.falta === 1 ? 'falta' : 'faltas'}</span>
