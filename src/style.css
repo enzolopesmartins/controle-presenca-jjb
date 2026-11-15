@@ -465,3 +465,18 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 .rodape-mais small { color: rgba(255, 255, 255, .55); font-size: .75rem; margin-top: 2px; }
 .lista-relatorio li.linha-verde { background: #eefaf2; border-left-color: var(--presente); }
 .linha-verde .lr-faltas strong { color: var(--presente); }
+
+/* Sininho da graduação na aba Alunos */
+.acoes-titulo { display: flex; align-items: center; gap: 10px; }
+.sino.sino-pequeno { width: 46px; height: 46px; box-shadow: none; }
+.lista-avisos .av-grau { background: #fff8db; border-color: #e0b100; }
+.lista-avisos .av-faixa { background: #dcf5e4; border-color: #15803d; }
+.lista-avisos .aviso-botao {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+  padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.lista-avisos .aviso-botao > span { display: flex; flex-direction: column; min-width: 0; }
+.lista-avisos .aviso-botao small { font-weight: 500; font-size: .85rem; color: var(--suave); }
+.regras-graduacao { margin: 8px 0 14px; font-size: .9rem; color: var(--suave); }
+.regras-graduacao summary { cursor: pointer; font-weight: 600; }
+.regras-graduacao ul { padding-left: 18px; margin: 8px 0 0; }

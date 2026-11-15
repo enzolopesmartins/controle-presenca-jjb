@@ -4,7 +4,7 @@ import {
 } from '../dados.js';
 import { app, esc, gravar, janela, chips, erroTela, aoEnviar } from '../ui.js';
 import { hojeISO, dataCurta, INICIO_DO_SISTEMA } from '../datas.js';
-import { FAIXAS, maxGraus, coresDosGraus, estiloFaixa } from '../faixas.js';
+import { FAIXAS, maxGraus, coresDosGraus, estiloFaixa, proximaGraduacao } from '../faixas.js';
 
 const AULAS_POR_GRAU = 30;
 const textoGraus = (n) => `${n} ${n === 1 ? 'grau' : 'graus'}`;
@@ -62,7 +62,10 @@ export function telaAlunos() {
   app.innerHTML = `
     <div class="titulo-acao">
       <h1>Alunos</h1>
-      <button type="button" class="botao" id="novo">+ Novo aluno</button>
+      <div class="acoes-titulo">
+        <button type="button" class="sino sino-pequeno" id="sino-graduacao" aria-label="Avisos de graduação">${SINO}<span class="sino-numero" hidden></span></button>
+        <button type="button" class="botao" id="novo">+ Novo aluno</button>
+      </div>
     </div>
     <input type="search" id="busca" class="busca" placeholder="Buscar pelo nome" value="${esc(busca)}" />
     ${chips([['ativos', `Ativos (${ativos.length})`], ['retirados', `Retirados (${retirados.length})`]], mostrar, 'mostrar')}
@@ -99,6 +102,7 @@ export function telaAlunos() {
     telaAlunos();
   }));
   document.getElementById('novo').addEventListener('click', () => janelaAluno(null));
+  ligarSinoGraduacao();
   document.getElementById('lista-alunos').addEventListener('click', (ev) => {
     const f = ev.target.closest('[data-faixa]');
     if (f) return janelaGraduacao(estado.alunos.find((a) => a.id === f.dataset.faixa));
@@ -107,6 +111,80 @@ export function telaAlunos() {
   });
 
   desenharLista();
+}
+
+// ---------- Sininho da graduação: quem já pode receber um grau ou trocar de faixa ----------
+const SINO = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`;
+const inicioDoGrau = (a) => a.grauEm ?? INICIO_DO_SISTEMA;
+
+// shortcut: guarda as presenças por 2 minutos; uma chamada feita nesse meio tempo aparece na próxima busca
+let guardadas = { desde: null, quando: 0, lista: [] };
+async function presencasDesde(desde) {
+  if (guardadas.desde && guardadas.desde <= desde && Date.now() - guardadas.quando < 120000) return guardadas.lista;
+  guardadas = { desde, quando: Date.now(), lista: await listarPresencas(desde, hojeISO()) };
+  return guardadas.lista;
+}
+
+async function prontosParaGraduar() {
+  const hoje = hojeISO();
+  const alunos = estado.alunos.filter((a) => a.ativo && a.faixa);
+  if (!alunos.length) return [];
+  const presencas = await presencasDesde(alunos.map(inicioDoGrau).sort()[0]);
+  return alunos.map((a) => {
+    const desde = inicioDoGrau(a);
+    const aulas = presencas.filter((p) => p.data >= desde && p.registros?.[a.id] === 'presente').length;
+    const proximo = proximaGraduacao({ ...a, aulas, grauEm: desde, desdeFaixa: a.faixaEm ?? a.entrada, hoje });
+    return proximo && { aluno: a, aulas, ...proximo };
+  }).filter(Boolean)
+    .sort((x, y) => (x.tipo === y.tipo ? x.aluno.nome.localeCompare(y.aluno.nome, 'pt-BR') : x.tipo === 'faixa' ? -1 : 1));
+}
+
+function ligarSinoGraduacao() {
+  const sino = document.getElementById('sino-graduacao');
+  let lista = [];
+  sino.addEventListener('click', () => janelaAvisosGraduacao(lista));
+  prontosParaGraduar().then((l) => {
+    lista = l;
+    const numero = sino.querySelector('.sino-numero');
+    numero.textContent = l.length;
+    numero.hidden = !l.length;
+    sino.classList.toggle('tem-aviso', l.length > 0);
+    sino.setAttribute('aria-label', l.length
+      ? `${l.length} ${l.length === 1 ? 'aluno pronto' : 'alunos prontos'} para graduar` : 'Avisos de graduação');
+  }).catch((e) => console.error(e));
+}
+
+const textoAviso = (x) => (x.tipo === 'faixa'
+  ? `<strong>Trocar para a faixa ${esc(x.faixa)}</strong>`
+  : `<strong>Dar o ${x.grau}º grau</strong>${x.ouFaixa ? ' (ou faixa azul, se for adulto)' : ''}${
+    x.aluno.faixa === 'Preta' ? '' : ` · ${x.aulas} aulas desde o último grau`}`);
+
+function janelaAvisosGraduacao(lista) {
+  const d = janela(`
+    <h2>Graduação</h2>
+    ${lista.length ? `<p>${lista.length === 1 ? 'Este aluno já pode' : 'Estes alunos já podem'} receber:</p>
+      <ul class="lista-avisos">${lista.map((x) => `
+        <li class="${x.tipo === 'faixa' ? 'av-faixa' : 'av-grau'}"><button type="button" class="aviso-botao" data-grad="${x.aluno.id}">
+          <span>${esc(x.aluno.nome)}<small>${textoAviso(x)}</small></span>${faixaHTML(x.aluno)}</button></li>`).join('')}
+      </ul><p class="suave pequeno">Toque no aluno para dar o grau ou trocar a faixa.</p>`
+    : '<p>Ninguém pronto para graduar agora.</p>'}
+    <details class="regras-graduacao"><summary>Como o aviso funciona</summary>
+      <ul>
+        <li><strong>Grau:</strong> quando o aluno completa as aulas combinadas (no cadastro da faixa) desde o último grau.</li>
+        <li><strong>Troca de faixa:</strong> com todos os graus da faixa, as aulas completas e o tempo mínimo da IBJJF/CBJJ na faixa:
+          azul 2 anos, roxa 1 ano e meio, marrom 1 ano, faixas infantis 1 ano (cinza e branca, 6 meses).</li>
+        <li><strong>Faixa preta:</strong> do 1º ao 3º grau, a cada 3 anos; do 4º ao 6º, a cada 5 anos.</li>
+        <li>A idade mínima (azul e roxa 16 anos, marrom 18, preta 19) fica com o professor.</li>
+      </ul></details>
+    <div class="botoes"><button type="button" class="botao secundario" data-fechar>Fechar</button></div>`);
+  d.addEventListener('click', (ev) => {
+    const b = ev.target.closest('[data-grad]');
+    if (!b) return;
+    d.close();
+    janelaGraduacao(estado.alunos.find((a) => a.id === b.dataset.grad));
+  });
 }
 
 // Cadastro e edição. Ao salvar, mostra o aviso e volta para a lista.
@@ -200,6 +278,7 @@ function janelaGraduacao(aluno) {
     const g = lerGraduacao(dados);
     // Trocou de faixa ou de grau: a contagem das aulas recomeça hoje
     if (aluno.faixa && (g.faixa !== aluno.faixa || g.graus !== aluno.graus)) g.grauEm = hojeISO();
+    if (aluno.faixa && g.faixa !== aluno.faixa) g.faixaEm = hojeISO(); // conta o tempo mínimo na faixa nova
     gravar(atualizarAluno(aluno.id, g), 'Graduação salva com sucesso');
     d.close();
   });

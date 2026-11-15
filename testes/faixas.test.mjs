@@ -37,3 +37,34 @@ test('cores dos graus (IBJJF): 4 brancos, 4 vermelhos e 3 da cor da próxima fai
   assert.deepEqual(coresDosGraus('Vermelha', 3), []);
   assert.deepEqual(coresDosGraus('Azul', undefined), []);
 });
+
+test('próxima faixa', async () => {
+  const { proximaFaixa } = await import('../src/faixas.js');
+  assert.equal(proximaFaixa('Cinza e branca'), 'Cinza');
+  assert.equal(proximaFaixa('Cinza e preta'), 'Amarela e branca');
+  assert.equal(proximaFaixa('Verde e preta'), 'Azul');
+  assert.equal(proximaFaixa('Marrom'), 'Preta');
+  assert.equal(proximaFaixa('Preta'), null);
+  assert.equal(proximaFaixa('Branca'), 'Cinza e branca ou Azul');
+});
+
+test('quando dar grau e trocar de faixa', async () => {
+  const { proximaGraduacao, mesesEntre } = await import('../src/faixas.js');
+  assert.equal(mesesEntre('2025-11-15', '2026-11-15'), 12);
+  assert.equal(mesesEntre('2025-11-16', '2026-11-15'), 11);
+  const base = { aulasPorGrau: 16, hoje: '2026-11-15', grauEm: '2026-09-01', desdeFaixa: '2025-01-10' };
+  assert.equal(proximaGraduacao({ ...base, faixa: 'Azul', graus: 2, aulas: 15 }), null, 'faltou 1 aula');
+  assert.deepEqual(proximaGraduacao({ ...base, faixa: 'Azul', graus: 2, aulas: 16 }), { tipo: 'grau', grau: 3 });
+  assert.equal(proximaGraduacao({ ...base, faixa: 'Azul', graus: 4, aulas: 40 }), null, 'azul: 2 anos de faixa');
+  assert.deepEqual(proximaGraduacao({ ...base, faixa: 'Azul', graus: 4, aulas: 16, desdeFaixa: '2024-11-15' }),
+    { tipo: 'faixa', faixa: 'Roxa' });
+  assert.deepEqual(proximaGraduacao({ ...base, faixa: 'Cinza', graus: 11, aulas: 20, desdeFaixa: '2025-11-15' }),
+    { tipo: 'faixa', faixa: 'Cinza e preta' }, 'infantil: 11 graus e 1 ano');
+  assert.equal(proximaGraduacao({ ...base, faixa: 'Cinza', graus: 11, aulas: 20, desdeFaixa: '2026-01-15' }), null);
+  assert.deepEqual(proximaGraduacao({ ...base, faixa: 'Branca', graus: 4, aulas: 16 }), { tipo: 'grau', grau: 5, ouFaixa: 'Azul' });
+  assert.deepEqual(proximaGraduacao({ ...base, faixa: 'Branca', graus: 5, aulas: 16 }), { tipo: 'faixa', faixa: 'Cinza e branca ou Azul' });
+  assert.deepEqual(proximaGraduacao({ ...base, faixa: 'Preta', graus: 1, aulas: 0, grauEm: '2023-11-15' }), { tipo: 'grau', grau: 2 });
+  assert.equal(proximaGraduacao({ ...base, faixa: 'Preta', graus: 3, aulas: 0, grauEm: '2023-11-15' }), null, '4º grau: 5 anos');
+  assert.equal(proximaGraduacao({ ...base, faixa: 'Coral', graus: 0, aulas: 99 }), null);
+  assert.equal(proximaGraduacao({ ...base, faixa: undefined, aulas: 99 }), null);
+});

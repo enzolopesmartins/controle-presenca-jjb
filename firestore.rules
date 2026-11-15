@@ -60,7 +60,8 @@ service cloud.firestore {
         (!('faixa' in novo()) || textoOk(novo().faixa, 20)) &&
         (!('graus' in novo()) || (novo().graus is int && novo().graus >= 0 && novo().graus <= 11)) &&
         (!('aulasPorGrau' in novo()) || (novo().aulasPorGrau is int && novo().aulasPorGrau >= 1 && novo().aulasPorGrau <= 1000)) &&
-        (!('grauEm' in novo()) || dataOk(novo().grauEm));
+        (!('grauEm' in novo()) || dataOk(novo().grauEm)) &&
+        (!('faixaEm' in novo()) || dataOk(novo().faixaEm));
       allow delete: if false;
     }
 
