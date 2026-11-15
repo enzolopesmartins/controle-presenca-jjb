@@ -4,7 +4,9 @@ import {
 } from '../dados.js';
 import { app, esc, gravar, janela, chips, erroTela, aoEnviar } from '../ui.js';
 import { hojeISO, dataCurta, INICIO_DO_SISTEMA } from '../datas.js';
-import { FAIXAS, maxGraus, coresDosGraus, estiloFaixa } from '../faixas.js';
+import { FAIXAS, SISTEMAS_GRAUS, maxGraus, coresDosGraus, estiloFaixa } from '../faixas.js';
+
+const SISTEMA_PADRAO = 'ibjjf'; // cores dos graus infantis quando o aluno ainda não tem uma escolhida
 
 const AULAS_POR_GRAU = 30;
 const textoGraus = (n) => `${n} ${n === 1 ? 'grau' : 'graus'}`;
@@ -12,7 +14,7 @@ const textoGraus = (n) => `${n} ${n === 1 ? 'grau' : 'graus'}`;
 // Desenho da faixa com os graus coloridos na ponteira
 const faixaHTML = (a) => (a.faixa
   ? `<span class="faixa" style="${estiloFaixa(a.faixa)}">${maxGraus(a.faixa) ? `
-      <span class="ponta">${coresDosGraus(a.faixa, a.graus).map((c) => `<i style="background:${c}"></i>`).join('')}</span>` : ''}</span>`
+      <span class="ponta">${coresDosGraus(a.faixa, a.graus, a.sistemaGraus ?? SISTEMA_PADRAO).map((c) => `<i style="background:${c}"></i>`).join('')}</span>` : ''}</span>`
   : '<span class="faixa sem-faixa"></span>');
 
 const camposGraduacao = (a) => `
@@ -25,7 +27,9 @@ const camposGraduacao = (a) => `
     </select></label>
     <label>Graus <input name="graus" type="number" inputmode="numeric" min="0" max="${maxGraus(a?.faixa ?? 'Branca')}" required value="${a?.graus ?? 0}" /></label>
   </div>
-  <p class="previa-faixa" aria-hidden="true">${faixaHTML({ faixa: a?.faixa ?? 'Branca', graus: a?.graus ?? 0 })}</p>
+  <label>Cores dos graus (faixas infantis) <select name="sistemaGraus">${Object.entries(SISTEMAS_GRAUS).map(([id, nome]) => `
+    <option value="${id}" ${id === (a?.sistemaGraus ?? SISTEMA_PADRAO) ? 'selected' : ''}>${nome}</option>`).join('')}</select></label>
+  <p class="previa-faixa" aria-hidden="true">${faixaHTML({ faixa: a?.faixa ?? 'Branca', graus: a?.graus ?? 0, sistemaGraus: a?.sistemaGraus })}</p>
   <label>Aulas para ganhar um grau <input name="aulasPorGrau" type="number" inputmode="numeric" min="1" max="1000"
     required value="${a?.aulasPorGrau ?? AULAS_POR_GRAU}" /></label>`;
 
@@ -35,15 +39,22 @@ function ligarGraduacao(form) {
     const max = maxGraus(form.faixa.value);
     form.graus.max = max;
     if (Number(form.graus.value) > max) form.graus.value = max;
-    form.querySelector('.previa-faixa').innerHTML = faixaHTML({ faixa: form.faixa.value, graus: Number(form.graus.value) });
+    form.querySelector('.previa-faixa').innerHTML = faixaHTML({
+      faixa: form.faixa.value, graus: Number(form.graus.value), sistemaGraus: form.sistemaGraus.value,
+    });
   };
   form.faixa.addEventListener('change', desenhar);
   form.graus.addEventListener('input', desenhar);
+  form.sistemaGraus.addEventListener('change', desenhar);
 }
 
 const lerGraduacao = (dados) => {
-  const g = { faixa: dados.get('faixa'), graus: Number(dados.get('graus')), aulasPorGrau: Number(dados.get('aulasPorGrau')) };
+  const g = {
+    faixa: dados.get('faixa'), graus: Number(dados.get('graus')), aulasPorGrau: Number(dados.get('aulasPorGrau')),
+    sistemaGraus: dados.get('sistemaGraus'),
+  };
   if (!FAIXAS[g.faixa]) throw erroTela('Escolha a faixa.');
+  if (!SISTEMAS_GRAUS[g.sistemaGraus]) throw erroTela('Escolha as cores dos graus.');
   if (!Number.isInteger(g.graus) || g.graus < 0 || g.graus > maxGraus(g.faixa)) {
     throw erroTela(`A faixa ${g.faixa} vai até ${textoGraus(maxGraus(g.faixa))}.`);
   }

@@ -34,3 +34,13 @@ test('cores dos graus: 4 brancos, 4 vermelhos e 3 pretos', () => {
   assert.deepEqual(coresDosGraus('Vermelha', 3), []);
   assert.deepEqual(coresDosGraus('Azul', undefined), []);
 });
+
+test('cores dos graus pela IBJJF: os 3 últimos na cor da próxima faixa', () => {
+  const amarelo = '#facc15';
+  assert.deepEqual(coresDosGraus('Cinza e preta', 11, 'ibjjf'), [B, B, B, B, V, V, V, V, amarelo, amarelo, amarelo]);
+  assert.deepEqual(coresDosGraus('Amarela', 9, 'ibjjf').at(-1), '#f97316', 'amarela -> laranja');
+  assert.deepEqual(coresDosGraus('Laranja e branca', 10, 'ibjjf').at(-1), '#16a34a', 'laranja -> verde');
+  assert.deepEqual(coresDosGraus('Verde e preta', 11, 'ibjjf').at(-1), '#1d4ed8', 'verde -> azul');
+  assert.deepEqual(coresDosGraus('Branca', 5, 'ibjjf'), [B, B, B, B, V]);
+  assert.deepEqual(coresDosGraus('Azul', 4, 'ibjjf'), [B, B, B, B]);
+});
