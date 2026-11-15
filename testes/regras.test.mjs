@@ -93,6 +93,17 @@ test('aluno com observação', async () => {
   }));
 });
 
+test('aluno com faixa, graus e aulas por grau', async () => {
+  const base = { nome: 'Gael', ativo: true, entrada: '2026-11-10' };
+  await assertSucceeds(setDoc(doc(prof(), 'alunos/x'), {
+    ...base, faixa: 'Azul', graus: 2, aulasPorGrau: 30, grauEm: '2026-11-15',
+  }));
+  await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, graus: 11 }));
+  await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, graus: 1.5 }));
+  await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, aulasPorGrau: 0 }));
+  await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, faixa: '' }));
+});
+
 test('aluno sem nome é recusado', async () => {
   await assertFails(setDoc(doc(prof(), 'alunos/x'), { nome: '', ativo: true, entrada: '2026-11-01' }));
 });

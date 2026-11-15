@@ -41,6 +41,8 @@ await env.withSecurityRulesDisabled(async (c) => {
   for (const [i, nome] of nomes.entries()) {
     await setDoc(doc(db, 'alunos', `a${i}`), {
       nome, ativo: true,
+      // Metade já com faixa, para ver os dois casos
+      ...(i % 2 ? {} : { faixa: ['Branca', 'Cinza', 'Azul', 'Roxa'][(i / 2 | 0) % 4], graus: i % 5, aulasPorGrau: 10 }),
       observacao: i === 2 ? 'Asma: tem bombinha na mochila' : '', entrada: somar(inicio, i === 11 ? 20 : -30),
     });
   }

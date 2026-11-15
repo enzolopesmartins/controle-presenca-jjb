@@ -1,9 +1,36 @@
 // Alunos: cadastrar, editar, retirar do projeto e reativar. Sem apagar.
 import {
-  estado, criarAluno, atualizarAluno, retirarAluno, reativarAluno,
+  estado, criarAluno, atualizarAluno, retirarAluno, reativarAluno, listarPresencas,
 } from '../dados.js';
 import { app, esc, gravar, janela, chips, erroTela, aoEnviar } from '../ui.js';
-import { hojeISO, dataCurta } from '../datas.js';
+import { hojeISO, dataCurta, INICIO_DO_SISTEMA } from '../datas.js';
+
+// Faixas e a cor de cada uma
+const FAIXAS = {
+  Branca: '#f4f4f4', Cinza: '#9ca3af', Amarela: '#facc15', Laranja: '#f97316', Verde: '#16a34a',
+  Azul: '#1d4ed8', Roxa: '#7e22ce', Marrom: '#78350f', Preta: '#111111',
+};
+const AULAS_POR_GRAU = 30;
+const textoGraus = (n) => `${n} ${n === 1 ? 'grau' : 'graus'}`;
+
+// Desenho da faixa com os graus (tirinhas brancas na ponta)
+const faixaHTML = (a) => (a.faixa
+  ? `<span class="faixa" style="--cor:${FAIXAS[a.faixa] ?? '#ccc'};--ponta:${a.faixa === 'Preta' ? '#c62828' : '#111'}">
+      <span class="ponta">${'<i></i>'.repeat(Math.min(a.graus ?? 0, 6))}</span></span>`
+  : '<span class="faixa sem-faixa"></span>');
+
+const camposGraduacao = (a) => `
+  <div class="duas-colunas">
+    <label>Faixa <select name="faixa">${Object.keys(FAIXAS).map((f) => `
+      <option ${f === (a?.faixa ?? 'Branca') ? 'selected' : ''}>${f}</option>`).join('')}</select></label>
+    <label>Graus <input name="graus" type="number" inputmode="numeric" min="0" max="10" required value="${a?.graus ?? 0}" /></label>
+  </div>
+  <label>Aulas para ganhar um grau <input name="aulasPorGrau" type="number" inputmode="numeric" min="1" max="1000"
+    required value="${a?.aulasPorGrau ?? AULAS_POR_GRAU}" /></label>`;
+
+const lerGraduacao = (dados) => ({
+  faixa: dados.get('faixa'), graus: Number(dados.get('graus')), aulasPorGrau: Number(dados.get('aulasPorGrau')),
+});
 
 let busca = '';
 let mostrar = 'ativos';
@@ -35,9 +62,12 @@ export function telaAlunos() {
     }
     el.innerHTML = `
         <ul class="lista-toque">${base.map((a) => `
-          <li><button type="button" data-aluno="${a.id}">
+          <li class="linha-aluno"><button type="button" data-aluno="${a.id}">
             <span>${esc(a.nome)}</span>
             <small class="suave">${a.ativo ? `desde ${dataCurta(a.entrada, { ano: false })}` : `saiu em ${dataCurta(a.saidaEm)}`}${a.observacao ? ' · tem observação' : ''}</small>
+          </button>
+          <button type="button" class="botao-faixa" data-faixa="${a.id}" aria-label="Graduação de ${esc(a.nome)}">
+            ${faixaHTML(a)}<small>${a.faixa ? textoGraus(a.graus ?? 0) : 'Faixa'}</small>
           </button></li>`).join('')}
         </ul>`;
   };
@@ -52,6 +82,8 @@ export function telaAlunos() {
   }));
   document.getElementById('novo').addEventListener('click', () => janelaAluno(null));
   document.getElementById('lista-alunos').addEventListener('click', (ev) => {
+    const f = ev.target.closest('[data-faixa]');
+    if (f) return janelaGraduacao(estado.alunos.find((a) => a.id === f.dataset.faixa));
     const b = ev.target.closest('[data-aluno]');
     if (b) janelaAluno(estado.alunos.find((a) => a.id === b.dataset.aluno));
   });
@@ -67,6 +99,7 @@ function janelaAluno(aluno) {
       <label>Nome ou apelido <input name="nome" maxlength="80" required value="${esc(aluno?.nome ?? '')}" autocomplete="off" /></label>
       <label>Observação <textarea name="observacao" rows="3" maxlength="500"
         placeholder="Ex.: alergia, quem busca, combinado com a família">${esc(aluno?.observacao ?? '')}</textarea></label>
+      ${aluno ? '' : camposGraduacao(null)}
       <p class="erro" hidden></p>
       <div class="botoes">
         <button type="button" class="botao secundario" data-fechar>${aluno ? 'Voltar' : 'Fechar'}</button>
@@ -95,7 +128,7 @@ function janelaAluno(aluno) {
       gravar(atualizarAluno(aluno.id, { nome, observacao }), 'Aluno salvo com sucesso');
       d.close();
     } else {
-      gravar(criarAluno({ nome, observacao }), `${nome} cadastrado com sucesso`);
+      gravar(criarAluno({ nome, observacao, ...lerGraduacao(dados), grauEm: hojeISO() }), `${nome} cadastrado com sucesso`);
       d.close();
     }
   });
@@ -104,6 +137,50 @@ function janelaAluno(aluno) {
   d.querySelector('#retirar')?.addEventListener('click', () => { d.close(); janelaRetirar(aluno); });
   d.querySelector('#reativar')?.addEventListener('click', () => {
     gravar(reativarAluno(aluno.id), `${aluno.nome} voltou para o projeto`);
+    d.close();
+  });
+}
+
+// Faixa, graus e aulas para o próximo grau. Conta as presenças desde o último grau.
+function janelaGraduacao(aluno) {
+  const d = janela(`
+    <h2>Graduação de ${esc(aluno.nome)}</h2>
+    <form>
+      ${camposGraduacao(aluno)}
+      <p class="progresso-grau" id="progresso">Contando as aulas…</p>
+      <p class="erro" hidden></p>
+      <div class="botoes">
+        <button type="button" class="botao secundario" data-fechar>Voltar</button>
+        <button type="submit" class="botao">Salvar</button>
+      </div>
+    </form>`);
+  const form = d.querySelector('form');
+  // Sem grau registrado ainda: conta desde quando o controle começou
+  const desde = aluno.grauEm ?? INICIO_DO_SISTEMA;
+  let aulas = null;
+  const mostrar = () => {
+    const el = d.querySelector('#progresso');
+    const meta = Number(form.aulasPorGrau.value) || 0;
+    if (aulas == null || !meta) return;
+    el.innerHTML = aulas >= meta
+      ? `<strong>Pronto para o próximo grau!</strong> ${aulas} aulas desde ${dataCurta(desde)}.`
+      : `<strong>${aulas} de ${meta}</strong> aulas para o próximo grau (desde ${dataCurta(desde)}).`;
+    el.classList.toggle('pronto', aulas >= meta);
+  };
+  form.aulasPorGrau.addEventListener('input', mostrar);
+  listarPresencas(desde, hojeISO()).then((ps) => {
+    aulas = ps.filter((p) => p.registros?.[aluno.id] === 'presente').length;
+    mostrar();
+  }).catch((e) => {
+    console.error(e);
+    d.querySelector('#progresso').textContent = '';
+  });
+
+  aoEnviar(form, (dados) => {
+    const g = lerGraduacao(dados);
+    // Trocou de faixa ou de grau: a contagem das aulas recomeça hoje
+    if (aluno.faixa && (g.faixa !== aluno.faixa || g.graus !== aluno.graus)) g.grauEm = hojeISO();
+    gravar(atualizarAluno(aluno.id, g), 'Graduação salva com sucesso');
     d.close();
   });
 }

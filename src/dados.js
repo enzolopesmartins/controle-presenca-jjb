@@ -95,9 +95,9 @@ export function salvarExcecao(data, tipo, motivo = '') {
 
 export const removerExcecao = (data) => deleteDoc(doc(db, 'diasAula', idDia(data)));
 
-export function criarAluno({ nome, observacao = '' }) {
+export function criarAluno({ nome, observacao = '', ...graduacao }) {
   return addDoc(collection(db, 'alunos'), {
-    nome, observacao, ativo: true, entrada: hojeISO(), criadoEm: serverTimestamp(),
+    nome, observacao, ...graduacao, ativo: true, entrada: hojeISO(), criadoEm: serverTimestamp(),
   });
 }
 
