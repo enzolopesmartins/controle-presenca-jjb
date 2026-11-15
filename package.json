@@ -8,7 +8,7 @@
     "dev:emulador": "vite --mode emulador",
     "emulador": "firebase emulators:start --only auth,firestore --project demo-presenca",
     "emulador:dados": "node scripts/dados-iniciais.mjs",
-    "testar": "node --test testes/relatorio.test.mjs",
+    "testar": "node --test testes/relatorio.test.mjs testes/faixas.test.mjs",
     "testar:regras": "firebase emulators:exec --only firestore --project demo-presenca \"node --test testes/regras.test.mjs\"",
     "build": "vite build",
     "preview": "vite preview"

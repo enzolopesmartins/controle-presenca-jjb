@@ -122,11 +122,16 @@ main {
 }
 .botao-faixa small { color: var(--suave); white-space: nowrap; }
 .faixa {
-  display: flex; justify-content: flex-end; width: 58px; height: 14px; border-radius: 3px;
+  display: flex; justify-content: flex-end; flex: none; width: 66px; height: 14px; border-radius: 3px;
   background: var(--cor); border: 1px solid rgba(0, 0, 0, .3); overflow: hidden;
 }
-.faixa .ponta { display: flex; gap: 2px; justify-content: center; width: 22px; margin-right: 6px; background: var(--ponta); }
-.faixa .ponta i { width: 2px; background: #fff; }
+.faixa .ponta { display: flex; gap: 1px; justify-content: center; min-width: 22px; padding: 0 2px; margin-right: 5px; background: var(--ponta); }
+/* Contorno claro para o grau preto aparecer na ponteira preta */
+.faixa .ponta i { width: 2px; background: #fff; box-shadow: 0 0 0 .5px rgba(255, 255, 255, .7); }
+.previa-faixa { margin: 4px 0 10px; }
+.previa-faixa .faixa { width: 150px; height: 22px; }
+.previa-faixa .ponta { min-width: 40px; gap: 2px; }
+.previa-faixa .ponta i { width: 3px; }
 .faixa.sem-faixa { background: repeating-linear-gradient(45deg, #eee 0 4px, #d6d9df 4px 8px); }
 .progresso-grau { background: #f0f2f6; border-radius: 10px; padding: 12px; margin: 12px 0 4px; }
 .progresso-grau.pronto { background: #dcf5e4; color: #15803d; }

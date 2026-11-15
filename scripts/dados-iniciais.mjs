@@ -42,7 +42,7 @@ await env.withSecurityRulesDisabled(async (c) => {
     await setDoc(doc(db, 'alunos', `a${i}`), {
       nome, ativo: true,
       // Metade já com faixa, para ver os dois casos
-      ...(i % 2 ? {} : { faixa: ['Branca', 'Cinza', 'Azul', 'Roxa'][(i / 2 | 0) % 4], graus: i % 5, aulasPorGrau: 10 }),
+      ...(i % 2 ? {} : { faixa: ['Branca', 'Cinza e branca', 'Amarela e preta', 'Laranja', 'Verde e branca', 'Azul', 'Roxa', 'Preta'][(i / 2 | 0) % 8], graus: [3, 6, 10, 5, 9, 4, 2, 1][(i / 2 | 0) % 8], aulasPorGrau: 10 }),
       observacao: i === 2 ? 'Asma: tem bombinha na mochila' : '', entrada: somar(inicio, i === 11 ? 20 : -30),
     });
   }

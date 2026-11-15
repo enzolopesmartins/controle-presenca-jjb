@@ -4,33 +4,51 @@ import {
 } from '../dados.js';
 import { app, esc, gravar, janela, chips, erroTela, aoEnviar } from '../ui.js';
 import { hojeISO, dataCurta, INICIO_DO_SISTEMA } from '../datas.js';
+import { FAIXAS, maxGraus, coresDosGraus, estiloFaixa } from '../faixas.js';
 
-// Faixas e a cor de cada uma
-const FAIXAS = {
-  Branca: '#f4f4f4', Cinza: '#9ca3af', Amarela: '#facc15', Laranja: '#f97316', Verde: '#16a34a',
-  Azul: '#1d4ed8', Roxa: '#7e22ce', Marrom: '#78350f', Preta: '#111111',
-};
 const AULAS_POR_GRAU = 30;
 const textoGraus = (n) => `${n} ${n === 1 ? 'grau' : 'graus'}`;
 
-// Desenho da faixa com os graus (tirinhas brancas na ponta)
+// Desenho da faixa com os graus coloridos na ponteira
 const faixaHTML = (a) => (a.faixa
-  ? `<span class="faixa" style="--cor:${FAIXAS[a.faixa] ?? '#ccc'};--ponta:${a.faixa === 'Preta' ? '#c62828' : '#111'}">
-      <span class="ponta">${'<i></i>'.repeat(Math.min(a.graus ?? 0, 6))}</span></span>`
+  ? `<span class="faixa" style="${estiloFaixa(a.faixa)}">${maxGraus(a.faixa) ? `
+      <span class="ponta">${coresDosGraus(a.faixa, a.graus).map((c) => `<i style="background:${c}"></i>`).join('')}</span>` : ''}</span>`
   : '<span class="faixa sem-faixa"></span>');
 
 const camposGraduacao = (a) => `
   <div class="duas-colunas">
-    <label>Faixa <select name="faixa">${Object.keys(FAIXAS).map((f) => `
-      <option ${f === (a?.faixa ?? 'Branca') ? 'selected' : ''}>${f}</option>`).join('')}</select></label>
-    <label>Graus <input name="graus" type="number" inputmode="numeric" min="0" max="10" required value="${a?.graus ?? 0}" /></label>
+    <label>Faixa <select name="faixa">
+      <optgroup label="Infantil (4 a 15 anos)">${Object.keys(FAIXAS).filter((f) => FAIXAS[f].infantil || f === 'Branca').map((f) => `
+        <option ${f === (a?.faixa ?? 'Branca') ? 'selected' : ''}>${f}</option>`).join('')}</optgroup>
+      <optgroup label="Adulto (16 anos ou mais)">${Object.keys(FAIXAS).filter((f) => !FAIXAS[f].infantil && f !== 'Branca').map((f) => `
+        <option ${f === a?.faixa ? 'selected' : ''}>${f}</option>`).join('')}</optgroup>
+    </select></label>
+    <label>Graus <input name="graus" type="number" inputmode="numeric" min="0" max="${maxGraus(a?.faixa ?? 'Branca')}" required value="${a?.graus ?? 0}" /></label>
   </div>
+  <p class="previa-faixa" aria-hidden="true">${faixaHTML({ faixa: a?.faixa ?? 'Branca', graus: a?.graus ?? 0 })}</p>
   <label>Aulas para ganhar um grau <input name="aulasPorGrau" type="number" inputmode="numeric" min="1" max="1000"
     required value="${a?.aulasPorGrau ?? AULAS_POR_GRAU}" /></label>`;
 
-const lerGraduacao = (dados) => ({
-  faixa: dados.get('faixa'), graus: Number(dados.get('graus')), aulasPorGrau: Number(dados.get('aulasPorGrau')),
-});
+// Ao trocar a faixa ou os graus: ajusta o máximo de graus e redesenha a faixa
+function ligarGraduacao(form) {
+  const desenhar = () => {
+    const max = maxGraus(form.faixa.value);
+    form.graus.max = max;
+    if (Number(form.graus.value) > max) form.graus.value = max;
+    form.querySelector('.previa-faixa').innerHTML = faixaHTML({ faixa: form.faixa.value, graus: Number(form.graus.value) });
+  };
+  form.faixa.addEventListener('change', desenhar);
+  form.graus.addEventListener('input', desenhar);
+}
+
+const lerGraduacao = (dados) => {
+  const g = { faixa: dados.get('faixa'), graus: Number(dados.get('graus')), aulasPorGrau: Number(dados.get('aulasPorGrau')) };
+  if (!FAIXAS[g.faixa]) throw erroTela('Escolha a faixa.');
+  if (!Number.isInteger(g.graus) || g.graus < 0 || g.graus > maxGraus(g.faixa)) {
+    throw erroTela(`A faixa ${g.faixa} vai até ${textoGraus(maxGraus(g.faixa))}.`);
+  }
+  return g;
+};
 
 let busca = '';
 let mostrar = 'ativos';
@@ -114,6 +132,7 @@ function janelaAluno(aluno) {
     </div>` : ''}`);
 
   const form = d.querySelector('form');
+  if (!aluno) ligarGraduacao(form);
   form.nome.focus();
   aoEnviar(form, (dados) => {
     const nome = dados.get('nome').trim().replace(/\s+/g, ' ');
@@ -155,6 +174,7 @@ function janelaGraduacao(aluno) {
       </div>
     </form>`);
   const form = d.querySelector('form');
+  ligarGraduacao(form);
   // Sem grau registrado ainda: conta desde quando o controle começou
   const desde = aluno.grauEm ?? INICIO_DO_SISTEMA;
   let aulas = null;
