@@ -102,8 +102,6 @@ test('aluno com faixa, graus e aulas por grau', async () => {
   await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, graus: 1.5 }));
   await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, aulasPorGrau: 0 }));
   await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, faixa: '' }));
-  await assertSucceeds(setDoc(doc(prof(), 'alunos/s'), { ...base, sistemaGraus: 'ibjjf' }));
-  await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, sistemaGraus: 'outro' }));
 });
 
 test('aluno sem nome é recusado', async () => {

@@ -27,22 +27,17 @@ Object.assign(FAIXAS, {
 
 export const maxGraus = (faixa) => FAIXAS[faixa]?.max ?? 4;
 
-// Sistemas de cores dos graus nas faixas infantis
-export const SISTEMAS_GRAUS = {
-  gb: 'Gracie Barra (brancos, vermelhos e pretos)',
-  ibjjf: 'IBJJF (brancos, vermelhos e a cor da próxima faixa)',
-};
-// IBJJF: os 3 últimos graus têm a cor do próximo grupo de faixas (verde vai para a azul, aos 16 anos)
+// IBJJF: os 3 últimos graus infantis têm a cor do próximo grupo de faixas (verde vai para a azul, aos 16 anos)
 const PROXIMA_COR = { Cinza: COR.Amarela, Amarela: COR.Laranja, Laranja: COR.Verde, Verde: '#1d4ed8' };
 const grupo = (faixa) => faixa.split(' ')[0];
 
-// Cores de cada grau, na ordem em que são dados.
-// Faixas infantis: 4 brancos, 4 vermelhos e 3 pretos (Gracie Barra) ou 3 da cor da próxima faixa (IBJJF);
-// o próximo grau é a troca de faixa. Branca: 4 brancos e 1 vermelho. Adulto: brancos (até 4; na preta, até 6).
-export function coresDosGraus(faixa, graus, sistema = 'gb') {
+// Cores de cada grau, na ordem em que são dados (padrão da IBJJF).
+// Faixas infantis: 4 brancos, 4 vermelhos e 3 da cor da próxima faixa; o próximo grau é a troca de faixa.
+// Branca: 4 brancos e 1 vermelho. Adulto: brancos (até 4; na preta, até 6).
+export function coresDosGraus(faixa, graus) {
   const n = Math.max(0, Math.min(graus ?? 0, maxGraus(faixa)));
   const coloridos = FAIXAS[faixa]?.infantil || faixa === 'Branca';
-  const finais = sistema === 'ibjjf' ? PROXIMA_COR[grupo(faixa)] ?? PRETO : PRETO;
+  const finais = PROXIMA_COR[grupo(faixa)] ?? VERMELHO;
   return Array.from({ length: n }, (_, i) => (!coloridos || i < 4 ? BRANCO : i < 8 ? VERMELHO : finais));
 }
 
