@@ -16,6 +16,7 @@ async function verificar() {
     const { versao } = await r.json();
     if (MINHA_VERSAO && versao && versao !== MINHA_VERSAO) {
       temNova = true;
+      marcarNovidade();
       tentarAtualizar();
     }
   } catch {
@@ -39,7 +40,21 @@ function tentarAtualizar() {
   setTimeout(() => location.reload(), 1200);
 }
 
+// Botão de atualizar no topo: recarrega o site. O pontinho aparece quando tem versão nova.
+const botao = () => document.getElementById('atualizar');
+function marcarNovidade() {
+  const b = botao();
+  if (!b) return;
+  b.querySelector('.ponto-novo').hidden = false;
+  b.classList.add('tem-novidade');
+  b.setAttribute('aria-label', 'Tem versão nova do site: toque para atualizar');
+}
+
 export function iniciarAtualizacao() {
+  botao()?.addEventListener('click', () => {
+    botao().classList.add('girando');
+    location.reload();
+  });
   setInterval(verificar, INTERVALO);
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') verificar();

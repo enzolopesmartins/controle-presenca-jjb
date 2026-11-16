@@ -56,6 +56,31 @@ code { font-size: .85em; background: #eef0f4; padding: 1px 4px; border-radius: 4
 }
 .marca { color: #fff; font-weight: 700; text-decoration: none; font-size: 1.05rem; white-space: nowrap; }
 .topo-data { font-size: .85rem; opacity: .85; text-align: right; line-height: 1.2; }
+.topo-direita { display: flex; align-items: center; gap: 10px; flex: none; }
+.topo-atualizar {
+  position: relative; flex: none; width: 38px; height: 38px; border-radius: 50%; padding: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .22); color: #fff;
+}
+.topo-atualizar:active { transform: scale(.92); }
+.topo-atualizar.girando svg { animation: girar .7s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+.topo-atualizar.tem-novidade { border-color: #ff6b6b; }
+.ponto-novo {
+  position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; border-radius: 50%;
+  background: #ff3b42; border: 2px solid var(--marca);
+}
+/* Celular: nome e data menores para não se encostarem */
+@media (max-width: 480px) {
+  .topo { gap: 8px; padding-left: 12px; padding-right: 12px; }
+  .marca { font-size: .95rem; }
+  .topo-data { font-size: .72rem; max-width: 80px; }
+  .topo-direita { gap: 8px; }
+  .topo-atualizar { width: 34px; height: 34px; }
+}
+@media (max-width: 340px) {
+  .topo-data { display: none; }
+}
 
 main {
   max-width: 760px; margin: 0 auto;
