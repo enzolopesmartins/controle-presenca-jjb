@@ -2,7 +2,7 @@
 import {
   estado, criarAluno, atualizarAluno, retirarAluno, reativarAluno, listarPresencas,
 } from '../dados.js';
-import { app, esc, gravar, janela, chips, erroTela, aoEnviar } from '../ui.js';
+import { app, esc, gravar, janela, chips, erroTela, aoEnviar, confirmar } from '../ui.js';
 import { hojeISO, dataCurta, INICIO_DO_SISTEMA } from '../datas.js';
 import { FAIXAS, maxGraus, coresDosGraus, estiloFaixa, proximaGraduacao } from '../faixas.js';
 
@@ -107,7 +107,7 @@ export function telaAlunos() {
     const f = ev.target.closest('[data-faixa]');
     if (f) return janelaGraduacao(estado.alunos.find((a) => a.id === f.dataset.faixa));
     const b = ev.target.closest('[data-aluno]');
-    if (b) janelaAluno(estado.alunos.find((a) => a.id === b.dataset.aluno));
+    if (b) janelaOpcoes(estado.alunos.find((a) => a.id === b.dataset.aluno));
   });
 
   desenharLista();
@@ -119,23 +119,25 @@ const SINO = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke
   <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`;
 const inicioDoGrau = (a) => a.grauEm ?? INICIO_DO_SISTEMA;
 
-// shortcut: guarda as presenças por 2 minutos; uma chamada feita nesse meio tempo aparece na próxima busca
-let guardadas = { desde: null, quando: 0, lista: [] };
-async function presencasDesde(desde) {
-  if (guardadas.desde && guardadas.desde <= desde && Date.now() - guardadas.quando < 120000) return guardadas.lista;
-  guardadas = { desde, quando: Date.now(), lista: await listarPresencas(desde, hojeISO()) };
-  return guardadas.lista;
-}
+// A mesma conta vale para o sininho e para a janela de graduação.
+// Aluno sem faixa salva conta como branca, 0 graus e o número padrão de aulas por grau.
+const contarAulas = (presencas, a) => {
+  const desde = inicioDoGrau(a);
+  return presencas.filter((p) => p.data >= desde && p.registros?.[a.id] === 'presente').length;
+};
+const situacaoDoGrau = (a, aulas, hoje) => proximaGraduacao({
+  faixa: a.faixa ?? 'Branca', graus: a.graus ?? 0, aulasPorGrau: a.aulasPorGrau ?? AULAS_POR_GRAU,
+  aulas, grauEm: inicioDoGrau(a), desdeFaixa: a.faixaEm ?? a.entrada, hoje,
+});
 
 async function prontosParaGraduar() {
   const hoje = hojeISO();
-  const alunos = estado.alunos.filter((a) => a.ativo && a.faixa);
+  const alunos = estado.alunos.filter((a) => a.ativo);
   if (!alunos.length) return [];
-  const presencas = await presencasDesde(alunos.map(inicioDoGrau).sort()[0]);
+  const presencas = await listarPresencas(alunos.map(inicioDoGrau).sort()[0], hoje);
   return alunos.map((a) => {
-    const desde = inicioDoGrau(a);
-    const aulas = presencas.filter((p) => p.data >= desde && p.registros?.[a.id] === 'presente').length;
-    const proximo = proximaGraduacao({ ...a, aulas, grauEm: desde, desdeFaixa: a.faixaEm ?? a.entrada, hoje });
+    const aulas = contarAulas(presencas, a);
+    const proximo = situacaoDoGrau(a, aulas, hoje);
     return proximo && { aluno: a, aulas, ...proximo };
   }).filter(Boolean)
     .sort((x, y) => (x.tipo === y.tipo ? x.aluno.nome.localeCompare(y.aluno.nome, 'pt-BR') : x.tipo === 'faixa' ? -1 : 1));
@@ -187,6 +189,31 @@ function janelaAvisosGraduacao(lista) {
   });
 }
 
+// Tocar no aluno: escolher entre editar e retirar (que pede confirmação)
+function janelaOpcoes(aluno) {
+  const d = janela(`
+    <h2>${esc(aluno.nome)}</h2>
+    <p class="suave">${aluno.ativo ? `No projeto desde ${dataCurta(aluno.entrada)}`
+      : `Retirado em ${dataCurta(aluno.saidaEm)}${aluno.motivoSaida ? `: ${esc(aluno.motivoSaida)}` : ''}`}</p>
+    <div class="opcoes-aluno">
+      <button type="button" class="botao largo" data-op="editar">Editar dados</button>
+      ${aluno.ativo
+        ? '<button type="button" class="botao perigo-contorno largo" data-op="sair">Retirar do projeto</button>'
+        : '<button type="button" class="botao secundario largo" data-op="voltar">Voltar para o projeto</button>'}
+      <button type="button" class="botao secundario largo" data-fechar>Fechar</button>
+    </div>`);
+  d.addEventListener('click', async (ev) => {
+    const op = ev.target.closest('[data-op]')?.dataset.op;
+    if (!op) return;
+    d.close();
+    if (op === 'editar') janelaAluno(aluno);
+    else if (op === 'sair') janelaRetirar(aluno);
+    else if (await confirmar(`Voltar ${esc(aluno.nome)} para o projeto?`, 'Ele volta a aparecer na chamada.', { sim: 'Sim', nao: 'Não' })) {
+      gravar(reativarAluno(aluno.id), `${aluno.nome} voltou para o projeto`);
+    }
+  });
+}
+
 // Cadastro e edição. Ao salvar, mostra o aviso e volta para a lista.
 function janelaAluno(aluno) {
   const d = janela(`
@@ -202,12 +229,7 @@ function janelaAluno(aluno) {
         <button type="submit" class="botao">${aluno ? 'Salvar' : 'Cadastrar'}</button>
       </div>
     </form>
-    ${aluno ? `<div class="zona-saida">
-      ${aluno.ativo
-        ? '<button type="button" class="botao perigo-contorno largo" id="retirar">Retirar do projeto</button>'
-        : `<p class="suave">Retirado em ${dataCurta(aluno.saidaEm)}${aluno.motivoSaida ? `: ${esc(aluno.motivoSaida)}` : ''}.</p>
-           <button type="button" class="botao secundario largo" id="reativar">Voltar para o projeto</button>`}
-    </div>` : ''}`);
+`);
 
   const form = d.querySelector('form');
   if (!aluno) ligarGraduacao(form);
@@ -231,11 +253,6 @@ function janelaAluno(aluno) {
   });
   form.nome.addEventListener('input', () => delete form.dataset.confirmouRepetido);
 
-  d.querySelector('#retirar')?.addEventListener('click', () => { d.close(); janelaRetirar(aluno); });
-  d.querySelector('#reativar')?.addEventListener('click', () => {
-    gravar(reativarAluno(aluno.id), `${aluno.nome} voltou para o projeto`);
-    d.close();
-  });
 }
 
 // Faixa, graus e aulas para o próximo grau. Conta as presenças desde o último grau.
@@ -253,21 +270,35 @@ function janelaGraduacao(aluno) {
     </form>`);
   const form = d.querySelector('form');
   ligarGraduacao(form);
-  // Sem grau registrado ainda: conta desde quando o controle começou
-  const desde = aluno.grauEm ?? INICIO_DO_SISTEMA;
+  const desde = inicioDoGrau(aluno);
   let aulas = null;
+  // Mostra o mesmo que o sininho, já com o que está escrito na janela
   const mostrar = () => {
     const el = d.querySelector('#progresso');
     const meta = Number(form.aulasPorGrau.value) || 0;
     if (aulas == null || !meta) return;
-    el.innerHTML = aulas >= meta
-      ? `<strong>Pronto para o próximo grau!</strong> ${aulas} aulas desde ${dataCurta(desde)}.`
-      : `<strong>${aulas} de ${meta}</strong> aulas para o próximo grau (desde ${dataCurta(desde)}).`;
-    el.classList.toggle('pronto', aulas >= meta);
+    const faixa = form.faixa.value;
+    const graus = Number(form.graus.value) || 0;
+    const pronto = situacaoDoGrau({ ...aluno, faixa, graus, aulasPorGrau: meta }, aulas, hojeISO());
+    if (faixa === 'Preta') {
+      el.innerHTML = pronto ? `<strong>Pronto para o ${pronto.grau}º grau!</strong> (pelo tempo na faixa preta)`
+        : 'Na faixa preta, os graus vêm pelo tempo: do 1º ao 3º a cada 3 anos; do 4º ao 6º a cada 5 anos.';
+    } else if (pronto?.tipo === 'faixa') {
+      el.innerHTML = `<strong>Pronto para trocar para a faixa ${esc(pronto.faixa)}!</strong> ${aulas} aulas desde ${dataCurta(desde)}.`;
+    } else if (pronto) {
+      el.innerHTML = `<strong>Pronto para o ${pronto.grau}º grau!</strong> ${aulas} aulas desde ${dataCurta(desde)}.`;
+    } else if (aulas >= meta && graus >= maxGraus(faixa)) {
+      el.innerHTML = `<strong>${aulas} aulas:</strong> já tem todos os graus. Falta o tempo mínimo na faixa para trocar.`;
+    } else {
+      el.innerHTML = `<strong>${aulas} de ${meta}</strong> aulas para o próximo grau (desde ${dataCurta(desde)}).`;
+    }
+    el.classList.toggle('pronto', Boolean(pronto));
   };
   form.aulasPorGrau.addEventListener('input', mostrar);
+  form.faixa.addEventListener('change', mostrar);
+  form.graus.addEventListener('input', mostrar);
   listarPresencas(desde, hojeISO()).then((ps) => {
-    aulas = ps.filter((p) => p.registros?.[aluno.id] === 'presente').length;
+    aulas = contarAulas(ps, aluno);
     mostrar();
   }).catch((e) => {
     console.error(e);
@@ -293,8 +324,8 @@ export function janelaRetirar(aluno, aoTerminar) {
       <label>Data da saída <input type="date" name="data" value="${hojeISO()}" required /></label>
       <label>Motivo (opcional) <input name="motivo" maxlength="200" placeholder="Ex.: passou do limite de faltas" /></label>
       <div class="botoes">
-        <button type="button" class="botao secundario" data-fechar>Voltar</button>
-        <button type="submit" class="botao perigo">Retirar</button>
+        <button type="button" class="botao secundario" data-fechar>Não</button>
+        <button type="submit" class="botao perigo">Sim, retirar</button>
       </div>
     </form>`);
   d.querySelector('form').addEventListener('submit', (ev) => {

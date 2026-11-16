@@ -80,14 +80,14 @@ export function janela(html, { aoFechar } = {}) {
 }
 
 // Pergunta sim/não. Devolve true se confirmou.
-export function confirmar(titulo, texto, { sim = 'Confirmar', perigo = false } = {}) {
+export function confirmar(titulo, texto, { sim = 'Confirmar', nao = 'Voltar', perigo = false } = {}) {
   return new Promise((resolve) => {
     let resposta = false;
     const d = janela(`
       <h2>${esc(titulo)}</h2>
       ${texto ? `<p>${texto}</p>` : ''}
       <div class="botoes">
-        <button type="button" class="botao secundario" data-fechar>Voltar</button>
+        <button type="button" class="botao secundario" data-fechar>${esc(nao)}</button>
         <button type="button" class="botao ${perigo ? 'perigo' : ''}" data-sim>${esc(sim)}</button>
       </div>`, { aoFechar: () => resolve(resposta) });
     d.querySelector('[data-sim]').addEventListener('click', () => { resposta = true; d.close(); });

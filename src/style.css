@@ -480,3 +480,80 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 .regras-graduacao { margin: 8px 0 14px; font-size: .9rem; color: var(--suave); }
 .regras-graduacao summary { cursor: pointer; font-weight: 600; }
 .regras-graduacao ul { padding-left: 18px; margin: 8px 0 0; }
+
+/* ---------- Acabamento visual (só aparência; nenhuma função muda) ---------- */
+:root {
+  --raio: 14px;
+  --sombra: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .08);
+  --sombra-alta: 0 16px 40px -12px rgba(16, 24, 40, .28), 0 6px 14px -6px rgba(16, 24, 40, .14);
+}
+body { text-rendering: optimizeLegibility; }
+h1 { font-weight: 800; letter-spacing: -.02em; }
+h2, h3 { letter-spacing: -.01em; }
+
+/* Topo e barra de baixo */
+.topo { box-shadow: 0 8px 20px -14px rgba(0, 0, 0, .6); }
+.barra {
+  background: rgba(255, 255, 255, .92); border-top-color: rgba(16, 24, 40, .07);
+  -webkit-backdrop-filter: saturate(180%) blur(14px); backdrop-filter: saturate(180%) blur(14px);
+  box-shadow: 0 -8px 24px -18px rgba(16, 24, 40, .35);
+}
+.barra a { position: relative; transition: color .15s; }
+.barra a.ativo::before {
+  content: ''; position: absolute; top: 0; left: 50%; width: 34px; height: 3px;
+  border-radius: 0 0 4px 4px; background: var(--destaque); transform: translateX(-50%);
+}
+
+/* Cartões e listas */
+.cartao, .numero, .lista-toque, .aluno-chamada, .lista-relatorio li, .lista-aulas a, .tabela-rolagem { box-shadow: var(--sombra); }
+.lista-toque button, .lista-toque a { transition: background .12s; }
+.numero strong { letter-spacing: -.02em; }
+
+/* Campos: anel colorido no campo selecionado */
+input, select, textarea {
+  border-color: #d3d7df; background: #fcfcfd;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--destaque); box-shadow: var(--anel); background: #fff; }
+input::placeholder, textarea::placeholder { color: #9aa1ad; }
+
+/* Botões */
+.botao {
+  border-radius: 12px; box-shadow: 0 1px 2px rgba(16, 24, 40, .14);
+  transition: transform .08s, filter .15s, background .15s, box-shadow .15s, border-color .15s;
+}
+.botao.secundario, .botao.perigo-contorno { box-shadow: 0 1px 2px rgba(16, 24, 40, .05); }
+.botao:focus-visible, .chip:focus-visible, .lista-toque button:focus-visible, .lista-toque a:focus-visible,
+.st:focus-visible, .sino:focus-visible { outline: none; box-shadow: var(--anel); }
+.chip { transition: background .15s, border-color .15s, color .15s; }
+.chip.ativo { box-shadow: 0 4px 10px -6px rgba(16, 24, 40, .6); }
+.st { transition: background .12s, color .12s, border-color .12s, transform .08s; }
+.st:active { transform: scale(.94); }
+.sino { transition: transform .12s, border-color .15s, color .15s; }
+.sino:active { transform: scale(.94); }
+
+@media (hover: hover) {
+  .lista-toque button:hover, .lista-toque a:hover { background: #f7f8fa; }
+  .botao:hover { filter: brightness(1.1); }
+  .botao.secundario:hover, .botao.perigo-contorno:hover { filter: none; background: #f6f7f9; }
+  .chip:hover { border-color: #aeb4bf; }
+  .chip.ativo:hover { border-color: var(--marca); }
+}
+
+/* Janelas: cantos maiores, sombra profunda e entrada suave */
+.janela { border-radius: 20px; box-shadow: var(--sombra-alta); }
+.janela[open] { animation: janela-entra .2s ease-out; }
+.janela[open]::backdrop { animation: fundo-entra .2s ease-out; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+@keyframes janela-entra { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+@keyframes fundo-entra { from { opacity: 0; } }
+.janela h2 { font-size: 1.22rem; }
+.toast { border-radius: 14px; box-shadow: var(--sombra-alta); }
+
+/* Opções do aluno (editar ou retirar) */
+.opcoes-aluno { display: grid; gap: 2px; margin-top: 6px; }
+.opcoes-aluno .botao.largo { margin-top: 8px; min-height: 52px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after { animation: none !important; transition: none !important; }
+}
+:root { --anel: 0 0 0 4px rgba(29, 78, 216, .18); }
