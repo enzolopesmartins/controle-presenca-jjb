@@ -4,7 +4,7 @@ import {
 } from '../dados.js';
 import { app, esc, gravar, janela, chips, erroTela, aoEnviar, confirmar } from '../ui.js';
 import { hojeISO, dataCurta, INICIO_DO_SISTEMA } from '../datas.js';
-import { FAIXAS, maxGraus, coresDosGraus, estiloFaixa, proximaGraduacao } from '../faixas.js';
+import { FAIXAS, maxGraus, coresDosGraus, estiloFaixa, proximaGraduacao, inicioDaContagem, marcarGraduacao } from '../faixas.js';
 
 const AULAS_POR_GRAU = 30;
 const textoGraus = (n) => `${n} ${n === 1 ? 'grau' : 'graus'}`;
@@ -117,9 +117,7 @@ export function telaAlunos() {
 const SINO = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
   <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`;
-// Conta desde o último grau dado ou a última troca de faixa. Antes disso, contam todas as presenças
-// (a chamada de dias antes do cadastro também vale).
-const inicioDoGrau = (a) => ((a.graus > 0 || a.faixaEm) && a.grauEm ? a.grauEm : INICIO_DO_SISTEMA);
+const inicioDoGrau = inicioDaContagem; // regra e teste em faixas.js
 
 // A mesma conta vale para o sininho e para a janela de graduação.
 // Aluno sem faixa salva conta como branca, 0 graus e o número padrão de aulas por grau.
@@ -258,7 +256,7 @@ function janelaAluno(aluno) {
       gravar(atualizarAluno(aluno.id, { nome, observacao }), 'Aluno salvo com sucesso');
       d.close();
     } else {
-      gravar(criarAluno({ nome, observacao, ...lerGraduacao(dados), grauEm: hojeISO() }), `${nome} cadastrado com sucesso`);
+      gravar(criarAluno({ nome, observacao, ...lerGraduacao(dados) }), `${nome} cadastrado com sucesso`);
       d.close();
     }
   });
@@ -295,13 +293,13 @@ function janelaGraduacao(aluno) {
       el.innerHTML = pronto ? `<strong>Pronto para o ${pronto.grau}º grau!</strong> (pelo tempo na faixa preta)`
         : 'Na faixa preta, os graus vêm pelo tempo: do 1º ao 3º a cada 3 anos; do 4º ao 6º a cada 5 anos.';
     } else if (pronto?.tipo === 'faixa') {
-      el.innerHTML = `<strong>Pronto para trocar para a faixa ${esc(pronto.faixa)}!</strong> ${aulas} aulas desde ${dataCurta(desde)}.`;
+      el.innerHTML = `<strong>Pronto para trocar para a faixa ${esc(pronto.faixa)}!</strong> ${aulas} aulas desde ${desde ? dataCurta(desde) : "o começo"}.`;
     } else if (pronto) {
-      el.innerHTML = `<strong>Pronto para o ${pronto.grau}º grau!</strong> ${aulas} aulas desde ${dataCurta(desde)}.`;
+      el.innerHTML = `<strong>Pronto para o ${pronto.grau}º grau!</strong> ${aulas} aulas desde ${desde ? dataCurta(desde) : "o começo"}.`;
     } else if (aulas >= meta && graus >= maxGraus(faixa)) {
       el.innerHTML = `<strong>${aulas} aulas:</strong> já tem todos os graus. Falta o tempo mínimo na faixa para trocar.`;
     } else {
-      el.innerHTML = `<strong>${aulas} de ${meta}</strong> aulas para o próximo grau (desde ${dataCurta(desde)}).`;
+      el.innerHTML = `<strong>${aulas} de ${meta}</strong> aulas para o próximo grau (desde ${desde ? dataCurta(desde) : "o começo"}).`;
     }
     el.classList.toggle('pronto', Boolean(pronto));
   };
@@ -317,10 +315,8 @@ function janelaGraduacao(aluno) {
   });
 
   aoEnviar(form, (dados) => {
-    const g = lerGraduacao(dados);
-    // Trocou de faixa ou de grau: a contagem das aulas recomeça hoje
-    if (aluno.faixa && (g.faixa !== aluno.faixa || g.graus !== aluno.graus)) g.grauEm = hojeISO();
-    if (aluno.faixa && g.faixa !== aluno.faixa) g.faixaEm = hojeISO(); // conta o tempo mínimo na faixa nova
+    // Trocou de faixa ou de grau: a contagem das aulas recomeça hoje (regra e teste em faixas.js)
+    const g = marcarGraduacao(aluno, lerGraduacao(dados), hojeISO());
     gravar(atualizarAluno(aluno.id, g), 'Graduação salva com sucesso');
     d.close();
   });

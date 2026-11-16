@@ -107,6 +107,8 @@ test('aluno com faixa, graus e aulas por grau', async () => {
   await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, aulasPorGrau: 0 }));
   await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, faixa: '' }));
   await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, faixaEm: 'ontem' }));
+  await assertSucceeds(setDoc(doc(prof(), 'alunos/g'), { ...base, graus: 1, grauEm: '2026-11-20', grauDadoNoSite: true }));
+  await assertFails(setDoc(doc(prof(), 'alunos/y'), { ...base, grauDadoNoSite: 'sim' }));
 });
 
 test('aluno sem nome é recusado', async () => {

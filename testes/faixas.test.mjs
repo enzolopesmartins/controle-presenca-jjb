@@ -68,3 +68,35 @@ test('quando dar grau e trocar de faixa', async () => {
   assert.equal(proximaGraduacao({ ...base, faixa: 'Coral', graus: 0, aulas: 99 }), null);
   assert.equal(proximaGraduacao({ ...base, faixa: undefined, aulas: 99 }), null);
 });
+
+test('de quando contar as presenças para o próximo grau', async () => {
+  const { inicioDaContagem } = await import('../src/faixas.js');
+  // Ninguém deu grau ainda: contam todas as presenças
+  assert.equal(inicioDaContagem({ entrada: '2026-11-10' }), '');
+  assert.equal(inicioDaContagem({ entrada: '2026-11-10', graus: 2 }), '', 'cadastrado já com graus');
+  assert.equal(inicioDaContagem({ entrada: '2026-11-15', grauEm: '2026-11-15', graus: 0 }), '', 'grauEm antigo do cadastro');
+  assert.equal(inicioDaContagem({ entrada: '2026-11-15', grauEm: '2026-11-15', graus: 2 }), '', 'cadastrado com graus, versão antiga');
+  assert.equal(inicioDaContagem({ entrada: '2026-11-10', grauEm: '2026-11-15', graus: 0 }), '', 'caso da Ana Clara');
+  // O professor deu um grau ou trocou a faixa pelo site: conta desde esse dia
+  assert.equal(inicioDaContagem({ entrada: '2026-11-01', grauEm: '2026-11-20', graus: 1 }), '2026-11-20');
+  assert.equal(inicioDaContagem({ entrada: '2026-11-01', grauEm: '2026-11-20', graus: 0, faixaEm: '2026-11-20' }), '2026-11-20');
+  assert.equal(inicioDaContagem({ entrada: '2026-11-20', grauEm: '2026-11-20', graus: 1, grauDadoNoSite: true }), '2026-11-20',
+    'cadastrado e graduado no mesmo dia');
+  assert.equal(inicioDaContagem(undefined), '');
+});
+
+test('salvar a graduação: a contagem recomeça só quando muda a faixa ou os graus', async () => {
+  const { marcarGraduacao, inicioDaContagem } = await import('../src/faixas.js');
+  const hoje = '2026-11-20';
+  const igual = { faixa: 'Branca', graus: 0, aulasPorGrau: 16 };
+  assert.deepEqual(marcarGraduacao({}, igual, hoje), igual, 'sem faixa salva e nada mudou');
+  const primeiro = marcarGraduacao({}, { faixa: 'Branca', graus: 1, aulasPorGrau: 16 }, hoje);
+  assert.equal(primeiro.grauEm, hoje, 'primeiro grau de quem não tinha faixa salva');
+  assert.equal(primeiro.faixaEm, undefined, 'continuou na branca');
+  assert.equal(inicioDaContagem({ entrada: hoje, ...primeiro }), hoje);
+  const troca = marcarGraduacao({ faixa: 'Branca', graus: 4 }, { faixa: 'Azul', graus: 0, aulasPorGrau: 30 }, hoje);
+  assert.equal(troca.faixaEm, hoje);
+  assert.equal(troca.grauEm, hoje);
+  const soAulas = marcarGraduacao({ faixa: 'Azul', graus: 2, grauEm: '2026-10-01' }, { faixa: 'Azul', graus: 2, aulasPorGrau: 20 }, hoje);
+  assert.equal(soAulas.grauEm, undefined, 'mudar só as aulas por grau não zera a contagem');
+});

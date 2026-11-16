@@ -89,3 +89,23 @@ export function proximaGraduacao({ faixa, graus = 0, aulasPorGrau, aulas, grauEm
   if (!proxima || mesesEntre(desdeFaixa, hoje) < tempoMinimo(faixa)) return null;
   return { tipo: 'faixa', faixa: proxima };
 }
+
+// De que dia contar as presenças para o próximo grau ('' = todas as presenças, de qualquer data).
+// A contagem só recomeça quando o professor dá um grau ou troca a faixa pelo site.
+// Até isso acontecer valem todas as presenças, inclusive de chamadas lançadas para dias antes do cadastro.
+// (Versões antigas gravavam grauEm no dia do cadastro: esse não conta, porque não foi um grau dado.)
+export function inicioDaContagem(aluno) {
+  const { grauEm, graus = 0, faixaEm, grauDadoNoSite, entrada = '' } = aluno ?? {};
+  if (!grauEm) return '';
+  if (grauDadoNoSite || faixaEm) return grauEm;
+  return graus > 0 && grauEm > entrada ? grauEm : ''; // dados de antes da marcação grauDadoNoSite
+}
+
+// O professor salvou a graduação: mudou a faixa ou os graus? Então a contagem recomeça hoje.
+// Aluno sem faixa salva conta como branca, 0 graus.
+export function marcarGraduacao(antes, depois, hoje) {
+  const mudouFaixa = depois.faixa !== (antes.faixa ?? 'Branca');
+  const mudouGraus = depois.graus !== (antes.graus ?? 0);
+  if (!mudouFaixa && !mudouGraus) return depois;
+  return { ...depois, grauEm: hoje, grauDadoNoSite: true, ...(mudouFaixa ? { faixaEm: hoje } : {}) };
+}

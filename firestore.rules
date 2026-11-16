@@ -61,7 +61,8 @@ service cloud.firestore {
         (!('graus' in novo()) || (novo().graus is int && novo().graus >= 0 && novo().graus <= 11)) &&
         (!('aulasPorGrau' in novo()) || (novo().aulasPorGrau is int && novo().aulasPorGrau >= 1 && novo().aulasPorGrau <= 1000)) &&
         (!('grauEm' in novo()) || dataOk(novo().grauEm)) &&
-        (!('faixaEm' in novo()) || dataOk(novo().faixaEm));
+        (!('faixaEm' in novo()) || dataOk(novo().faixaEm)) &&
+        (!('grauDadoNoSite' in novo()) || novo().grauDadoNoSite is bool);
       // Apagar de vez só quem já foi retirado do projeto
       allow delete: if ehProfessor() && resource.data.ativo == false;
     }
