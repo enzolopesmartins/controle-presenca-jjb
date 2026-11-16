@@ -1,6 +1,7 @@
 // Ponto único de acesso ao Firebase (login e banco).
 import {
   signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail,
+  GoogleAuthProvider, signInWithPopup, signInWithRedirect,
 } from 'firebase/auth';
 import {
   collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, writeBatch, onSnapshot,
@@ -13,6 +14,18 @@ import { idDia, hojeISO } from './datas.js';
 
 export const entrar = (email, senha) => signInWithEmailAndPassword(auth, email.trim(), senha);
 export const sair = () => signOut(auth);
+
+// Entrar com Google: abre a janelinha do Google; se o navegador bloquear, vai para a página dele e volta
+export async function entrarComGoogle() {
+  const google = new GoogleAuthProvider();
+  google.setCustomParameters({ prompt: 'select_account' });
+  try {
+    await signInWithPopup(auth, google);
+  } catch (e) {
+    if (e.code === 'auth/popup-blocked') return signInWithRedirect(auth, google);
+    throw e;
+  }
+}
 export const recuperarSenha = (email) => sendPasswordResetEmail(auth, email.trim());
 export const aoMudarLogin = (fn) => onAuthStateChanged(auth, fn);
 

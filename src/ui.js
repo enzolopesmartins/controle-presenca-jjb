@@ -24,6 +24,11 @@ const MENSAGENS_ERRO = {
   'auth/too-many-requests': 'Muitas tentativas. Espere um pouco e tente de novo.',
   'auth/network-request-failed': 'Sem conexão. Confira a internet.',
   'auth/user-disabled': 'Essa conta foi desativada.',
+  'auth/account-exists-with-different-credential': 'Esse e-mail já tem conta com senha. Entre com o e-mail e a senha.',
+  'auth/popup-closed-by-user': 'A janela do Google foi fechada antes de terminar. Toque de novo em "Entrar com Google".',
+  'auth/cancelled-popup-request': 'A janela do Google foi fechada antes de terminar. Toque de novo em "Entrar com Google".',
+  'auth/operation-not-allowed': 'Entrar com Google ainda não foi ligado no Firebase.',
+  'auth/unauthorized-domain': 'Este endereço do site ainda não foi liberado para entrar com Google.',
   'permission-denied': 'Sem permissão. Saia e entre de novo.',
   unavailable: 'Sem conexão. Confira a internet e tente de novo.',
 };

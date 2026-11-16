@@ -610,3 +610,14 @@ input::placeholder, textarea::placeholder { color: #9aa1ad; }
 /* Ao rolar até um campo, a janela desconta o rodapé com os botões (o campo nunca fica embaixo dele) */
 .janela { scroll-padding: 12px 0 92px; }
 .teclado-aberto .acoes-chamada { bottom: 0; }
+
+/* Entrar com Google */
+.ou { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; color: var(--suave); font-size: .9rem; }
+.ou::before, .ou::after { content: ''; flex: 1; height: 1px; background: var(--borda); }
+.botao-google {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 52px;
+  background: #fff; color: #1f1f1f; border: 1px solid #c8c8ce; border-radius: 12px;
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.botao-google:hover { background: #f6f6f8; }
+.botao-google:disabled { opacity: .6; cursor: wait; }
