@@ -1,6 +1,6 @@
-// Alunos: cadastrar, editar, retirar do projeto e reativar. Sem apagar.
+// Alunos: cadastrar, editar, retirar do projeto, reativar e apagar de vez (só retirados).
 import {
-  estado, criarAluno, atualizarAluno, retirarAluno, reativarAluno, listarPresencas,
+  estado, criarAluno, atualizarAluno, retirarAluno, reativarAluno, apagarAluno, listarPresencas,
 } from '../dados.js';
 import { app, esc, gravar, janela, chips, erroTela, aoEnviar, confirmar } from '../ui.js';
 import { hojeISO, dataCurta, INICIO_DO_SISTEMA } from '../datas.js';
@@ -199,7 +199,8 @@ function janelaOpcoes(aluno) {
       <button type="button" class="botao largo" data-op="editar">Editar dados</button>
       ${aluno.ativo
         ? '<button type="button" class="botao perigo-contorno largo" data-op="sair">Retirar do projeto</button>'
-        : '<button type="button" class="botao secundario largo" data-op="voltar">Voltar para o projeto</button>'}
+        : `<button type="button" class="botao secundario largo" data-op="voltar">Voltar para o projeto</button>
+           <button type="button" class="botao perigo largo" data-op="apagar">Apagar permanentemente</button>`}
       <button type="button" class="botao secundario largo" data-fechar>Fechar</button>
     </div>`);
   d.addEventListener('click', async (ev) => {
@@ -208,7 +209,12 @@ function janelaOpcoes(aluno) {
     d.close();
     if (op === 'editar') janelaAluno(aluno);
     else if (op === 'sair') janelaRetirar(aluno);
-    else if (await confirmar(`Voltar ${esc(aluno.nome)} para o projeto?`, 'Ele volta a aparecer na chamada.', { sim: 'Sim', nao: 'Não' })) {
+    else if (op === 'apagar') {
+      if (await confirmar(`Deseja apagar ${aluno.nome} permanentemente do projeto?`,
+        'O aluno some da lista e dos relatórios. Não dá para desfazer.', { sim: 'Sim, apagar', nao: 'Não', perigo: true })) {
+        gravar(apagarAluno(aluno.id), `${aluno.nome} apagado do projeto`);
+      }
+    } else if (await confirmar(`Voltar ${aluno.nome} para o projeto?`, 'Ele volta a aparecer na chamada.', { sim: 'Sim', nao: 'Não' })) {
       gravar(reativarAluno(aluno.id), `${aluno.nome} voltou para o projeto`);
     }
   });

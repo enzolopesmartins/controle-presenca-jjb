@@ -109,6 +109,9 @@ export const retirarAluno = (id, saidaEm, motivoSaida = '') =>
 export const reativarAluno = (id) =>
   atualizarAluno(id, { ativo: true, saidaEm: deleteField(), motivoSaida: deleteField() });
 
+// Apaga o aluno de vez (só retirados; as presenças antigas ficam, mas somem dos relatórios)
+export const apagarAluno = (id) => deleteDoc(doc(db, 'alunos', id));
+
 // Apaga a chamada do dia inteira
 export const excluirChamada = (data) => deleteDoc(doc(db, 'presencas', idDia(data)));
 

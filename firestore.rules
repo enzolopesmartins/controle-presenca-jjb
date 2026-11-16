@@ -62,7 +62,8 @@ service cloud.firestore {
         (!('aulasPorGrau' in novo()) || (novo().aulasPorGrau is int && novo().aulasPorGrau >= 1 && novo().aulasPorGrau <= 1000)) &&
         (!('grauEm' in novo()) || dataOk(novo().grauEm)) &&
         (!('faixaEm' in novo()) || dataOk(novo().faixaEm));
-      allow delete: if false;
+      // Apagar de vez só quem já foi retirado do projeto
+      allow delete: if ehProfessor() && resource.data.ativo == false;
     }
 
     match /ciclos/{id} {
