@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 // Cada publicação ganha um número de versão. O site aberto no celular confere o
-// /versao.json de tempos em tempos e se atualiza sozinho quando muda (src/atualizacao.js).
+// /versao.json de tempos em tempos e acende o pontinho no botão de atualizar (src/atualizacao.js).
 const VERSAO = String(Date.now());
 
 export default defineConfig({
