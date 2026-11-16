@@ -582,3 +582,18 @@ input::placeholder, textarea::placeholder { color: #9aa1ad; }
   *, ::before, ::after { animation: none !important; transition: none !important; }
 }
 :root { --anel: 0 0 0 4px rgba(29, 78, 216, .18); }
+
+/* ---------- Teclado do celular aberto: tudo cabe acima dele ---------- */
+.janela { max-height: calc(var(--tela-visivel, 100dvh) - 24px); }
+.teclado-aberto .janela { margin: calc(var(--tela-topo, 0px) + 12px) auto auto; }
+.teclado-aberto .barra { display: none; }
+
+/* Janelas mais compactas no celular */
+@media (max-width: 480px) {
+  .janela-corpo { padding: 16px; }
+  .janela h2 { font-size: 1.12rem; margin-bottom: .5rem; }
+  .janela label { margin-bottom: 10px; }
+  .janela input, .janela select, .janela textarea { min-height: 44px; padding: 10px 12px; margin-top: 4px; }
+  .janela .botoes { margin-top: 4px; }
+  .janela .botao { min-height: 46px; padding: 10px 16px; }
+}

@@ -73,6 +73,8 @@ export function janela(html, { aoFechar } = {}) {
     if (ev.target === d || ev.target.closest('[data-fechar]')) d.close();
   });
   d.showModal();
+  // O navegador põe o cursor no primeiro campo e abre o teclado; só abre quando o professor tocar no campo
+  if (d.contains(document.activeElement) && document.activeElement.matches('input, textarea')) document.activeElement.blur();
   // Abre sempre no topo (o navegador rola até o primeiro botão)
   requestAnimationFrame(() => { d.scrollTop = 0; });
   d.scrollTop = 0;
@@ -123,3 +125,27 @@ export function chips(opcoes, atual, nome) {
     <button type="button" class="chip ${valor === atual ? 'ativo' : ''}" data-${nome}="${esc(valor)}"
       aria-pressed="${valor === atual}">${esc(texto)}</button>`).join('')}</div>`;
 }
+
+// ---------- Teclado do celular ----------
+// Quando o teclado abre, a parte visível da tela encolhe. As janelas passam a caber nela
+// (encostadas em cima, acima do teclado), a barra de baixo some e o campo tocado rola para a vista.
+const telaVisivel = window.visualViewport;
+if (telaVisivel) {
+  let maior = 0;
+  const ajustar = () => {
+    const raiz = document.documentElement;
+    maior = Math.max(maior, telaVisivel.height);
+    raiz.style.setProperty('--tela-visivel', `${Math.round(telaVisivel.height)}px`);
+    raiz.style.setProperty('--tela-topo', `${Math.round(telaVisivel.offsetTop)}px`);
+    raiz.classList.toggle('teclado-aberto', telaVisivel.height < maior * 0.75);
+  };
+  telaVisivel.addEventListener('resize', ajustar);
+  telaVisivel.addEventListener('scroll', ajustar);
+  window.addEventListener('orientationchange', () => { maior = 0; setTimeout(ajustar, 300); });
+  ajustar();
+}
+document.addEventListener('focusin', (ev) => {
+  if (!matchMedia('(pointer: coarse)').matches) return; // só em tela de toque
+  if (!ev.target.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=date]), textarea')) return;
+  setTimeout(() => ev.target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350);
+});
