@@ -146,6 +146,6 @@ if (telaVisivel) {
 }
 document.addEventListener('focusin', (ev) => {
   if (!matchMedia('(pointer: coarse)').matches) return; // só em tela de toque
-  if (!ev.target.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=date]), textarea')) return;
+  if (!ev.target.matches?.('input:not([type=checkbox]):not([type=radio]), textarea, select')) return;
   setTimeout(() => ev.target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 350);
 });

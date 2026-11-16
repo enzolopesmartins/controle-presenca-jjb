@@ -597,3 +597,16 @@ input::placeholder, textarea::placeholder { color: #9aa1ad; }
   .janela .botoes { margin-top: 4px; }
   .janela .botao { min-height: 46px; padding: 10px 16px; }
 }
+
+/* Botões da janela (Salvar, Voltar, Confirmar...) presos no rodapé: sempre à vista, mesmo com o teclado aberto */
+.janela .botoes:last-child {
+  position: sticky; bottom: 0; z-index: 2; background: #fff;
+  margin: 10px -20px -20px; padding: 10px 20px 16px;
+  box-shadow: 0 -10px 14px -12px rgba(16, 24, 40, .35);
+}
+@media (max-width: 480px) {
+  .janela .botoes:last-child { margin: 8px -16px -16px; padding: 10px 16px 12px; }
+}
+/* Ao rolar até um campo, a janela desconta o rodapé com os botões (o campo nunca fica embaixo dele) */
+.janela { scroll-padding: 12px 0 92px; }
+.teclado-aberto .acoes-chamada { bottom: 0; }
