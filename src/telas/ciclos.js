@@ -6,7 +6,7 @@ import { hojeISO, inicioDoMes, somarDias, sugerirCiclo, dataCurta, nomeDoCiclo }
 export function telaCiclos() {
   const ativo = cicloAtivo();
   app.innerHTML = `
-    <a href="#/mais" class="voltar">‹ Mais</a>
+    <a href="#/mais" class="voltar">‹ Configurações</a>
     <h1>Ciclos</h1>
     <p class="suave">Cada ciclo tem início, fim e limite de faltas (padrão 4). A falta justificada não conta.</p>
     ${ativo ? `

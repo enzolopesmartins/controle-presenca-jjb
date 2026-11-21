@@ -1,10 +1,10 @@
-// Menu Mais: dias de aula, ciclos e sair.
+// Menu Configurações: dias de aula, ciclos e sair.
 import { sair } from '../dados.js';
 import { app, esc, confirmar } from '../ui.js';
 
 export function telaMais({ professor }) {
   app.innerHTML = `
-    <h1>Mais</h1>
+    <h1>Configurações</h1>
     <ul class="lista-toque menu-mais">
       <li><a href="#/dias"><span>Dias de aula</span><small class="suave">dias da semana, extras e cancelados</small></a></li>
       <li><a href="#/ciclos"><span>Ciclos</span><small class="suave">datas, limite de faltas e renovar</small></a></li>

@@ -92,7 +92,7 @@ function janelaAvisos(ciclo, vermelhos, amarelos) {
   const limite = ciclo?.limiteFaltas ?? 4;
   janela(`
     <h2>Avisos de faltas</h2>
-    ${!ciclo ? '<p>Crie o ciclo/trimestre em Mais > Ciclos para o sininho começar a contar as faltas.</p>'
+    ${!ciclo ? '<p>Crie o ciclo/trimestre em Configurações > Ciclos para o sininho começar a contar as faltas.</p>'
       : !vermelhos.length && !amarelos.length ? '<p>Nenhum aluno perto do limite de faltas.</p>' : ''}
     ${vermelhos.length ? `<h3>Chegaram ao limite (${limite} faltas ou mais)</h3>
       <ul class="lista-avisos">${vermelhos.map((l) => item(l, 'av-vermelho')).join('')}</ul>` : ''}

@@ -29,7 +29,7 @@ export function telaDias() {
     .sort((a, b) => a.data.localeCompare(b.data));
 
   app.innerHTML = `
-    <a href="#/mais" class="voltar">‹ Mais</a>
+    <a href="#/mais" class="voltar">‹ Configurações</a>
     <h1>Dias de aula</h1>
 
     <section class="cartao">
