@@ -290,17 +290,18 @@ input:focus, select:focus { outline: 2px solid var(--destaque); outline-offset: 
 }
 .dia.aula { background: #dbe6ff; border-color: #a8c0f5; font-weight: 700; }
 .dia.extra { background: var(--presente-fundo); border-color: var(--presente); font-weight: 700; }
-.dia.cancelada { background: var(--falta-fundo); border-color: var(--falta); text-decoration: line-through; }
+/* Cores cheias como o verde: vermelho com letra branca, amarelo com letra escura (branco some no amarelo) */
+.dia.cancelada { background: var(--falta); border-color: var(--falta); color: #fff; font-weight: 700; text-decoration: line-through; }
 .dia.hoje { outline: 2px solid var(--marca); outline-offset: 1px; }
 .dia.feita { background: var(--presente); border-color: var(--presente); color: #fff; font-weight: 700; }
-.dia.pendente { background: #fff7e6; border: 2px solid #e8a33d; font-weight: 700; }
+.dia.pendente { background: #f5b301; border-color: #d99a00; color: #2b1d00; font-weight: 700; }
 .legenda { display: flex; gap: 14px; flex-wrap: wrap; font-size: .9rem; margin: 10px 0; }
 .legenda i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 5px; vertical-align: -2px; }
 .legenda .aula { background: #dbe6ff; border: 1px solid #a8c0f5; }
 .legenda .extra { background: var(--presente-fundo); border: 1px solid var(--presente); }
 .legenda .feita { background: var(--presente); border: 1px solid var(--presente); }
-.legenda .pendente { background: #fff7e6; border: 2px solid #e8a33d; }
-.legenda .cancelada { background: var(--falta-fundo); border: 1px solid var(--falta); }
+.legenda .pendente { background: #f5b301; border: 1px solid #d99a00; }
+.legenda .cancelada { background: var(--falta); border: 1px solid var(--falta); }
 
 /* ---------- ciclos ---------- */
 
@@ -621,3 +622,6 @@ input::placeholder, textarea::placeholder { color: #9aa1ad; }
 }
 .botao-google:hover { background: #f6f6f8; }
 .botao-google:disabled { opacity: .6; cursor: wait; }
+
+/* Janela do dia (calendário): fazer chamada ou cancelar as aulas */
+.janela [data-acao] { margin-top: 10px; }

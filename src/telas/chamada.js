@@ -1,9 +1,9 @@
-// Chamada em três passos: calendário (na Início) > tela do dia ("Fazer chamada") > lista com P e F.
+// Chamada: calendário (na Início) > janela do dia (fazer chamada ou cancelar as aulas) > lista com P e F.
 // Na lista, as marcações só vão para o banco ao tocar em "Salvar chamada".
 import {
-  estado, ouvirChamada, salvarChamada, salvarExcecao, listarPresencas, excluirChamada,
+  estado, ouvirChamada, salvarChamada, salvarExcecao, removerExcecao, listarPresencas,
 } from '../dados.js';
-import { app, esc, toast, confirmar, mensagemErro, janela } from '../ui.js';
+import { app, esc, toast, confirmar, mensagemErro, janela, gravar } from '../ui.js';
 import {
   hojeISO, temAula, dataLonga, maiuscula, MESES, DIAS_CURTOS, inicioDoMes, fimDoMes,
   somarMeses, somarDias, diaSemana, INICIO_DO_SISTEMA,
@@ -18,7 +18,7 @@ const STATUS_LISTA = {
 
 let mes = null;
 
-// Desenha o calendário do mês dentro de "el". Tocar num dia abre a tela do dia.
+// Desenha o calendário do mês dentro de "el". Tocar num dia abre a janela do dia.
 export function montarCalendario(el) {
   const hoje = hojeISO();
   mes ??= inicioDoMes(hoje);
@@ -69,59 +69,42 @@ export function montarCalendario(el) {
   });
   cal.addEventListener('click', (ev) => {
     const b = ev.target.closest('[data-dia]');
-    if (b) location.hash = `#/dia/${b.dataset.dia}`;
+    if (b) janelaDoDia(b.dataset.dia);
   });
 }
 
-// ---------- 2. tela do dia ----------
+// ---------- 2. janela do dia: fazer chamada ou cancelar as aulas ----------
 
 const dataValida = (t) => (/^\d{4}-\d{2}-\d{2}$/.test(t ?? '') ? t : hojeISO());
 
-export function telaDia({ params }) {
-  const data = dataValida(params[0]);
-  mes = inicioDoMes(data);
+export function janelaDoDia(data) {
   const { diasPadrao, excecoes } = estado;
   const exc = excecoes[data];
   const situacao = exc?.tipo === 'cancelada'
     ? `Aula cancelada${exc.motivo ? `: ${esc(exc.motivo)}` : ''}.`
     : exc?.tipo === 'extra' ? 'Dia extra de aula.'
-      : temAula(data, diasPadrao, excecoes) ? 'Dia de aula.' : 'Não é dia de aula normal.';
+      : temAula(data, diasPadrao, excecoes) ? '' : 'Não é dia de aula normal.';
+  const podeCancelar = !exc && temAula(data, diasPadrao, excecoes);
 
-  app.innerHTML = `
-    <a href="#/" class="voltar">‹ Início</a>
-    <h1>${maiuscula(dataLonga(data, { ano: true }))}</h1>
-    <section class="cartao destaque-hoje">
-      <p class="suave">${situacao}</p>
-      <div id="resumo-dia"><p class="suave">Carregando…</p></div>
-      <a class="botao grande" id="fazer" href="#/chamada/${data}">Fazer chamada</a>
-      <button type="button" class="botao perigo-contorno largo" id="excluir" hidden>Excluir chamada</button>
-    </section>`;
+  const d = janela(`
+    <h2>${maiuscula(dataLonga(data, { ano: true }))}</h2>
+    ${situacao ? `<p class="suave">${situacao}</p>` : ''}
+    <a class="botao largo" href="#/chamada/${data}" data-fechar>Fazer chamada</a>
+    ${podeCancelar ? '<button type="button" class="botao largo perigo-contorno" data-acao="cancelar">Cancelar as aulas desse dia</button>' : ''}
+    ${exc?.tipo === 'cancelada' ? '<button type="button" class="botao largo secundario" data-acao="desfazer">Desfazer o cancelamento</button>' : ''}
+    <div class="botoes"><button type="button" class="botao secundario" data-fechar>Voltar</button></div>`);
 
-  document.getElementById('excluir').addEventListener('click', async () => {
-    if (!await confirmar('Excluir a chamada?',
-      `A chamada de ${dataLonga(data)} vai ser apagada. Não dá para desfazer.`,
-      { sim: 'Excluir', perigo: true })) return;
-    toast('Chamada excluída', 'ok');
-    excluirChamada(data).catch((e) => {
-      console.error(e);
-      toast(mensagemErro(e), 'erro');
-    });
+  d.querySelector('[data-acao="cancelar"]')?.addEventListener('click', async () => {
+    d.close();
+    if (await confirmar('Cancelar as aulas desse dia?',
+      `Não vai ter aula em ${dataLonga(data)}. Dá para desfazer depois.`,
+      { sim: 'Sim, cancelar', nao: 'Não', perigo: true })) {
+      gravar(salvarExcecao(data, 'cancelada'), 'Aulas canceladas');
+    }
   });
-
-  return ouvirChamada(data, ({ registros, existe }) => {
-    const valores = Object.values(registros);
-    const p = valores.filter((s) => s === 'presente').length;
-    const f = valores.filter((s) => s === 'falta').length;
-    const j = valores.filter((s) => s === 'justificada').length;
-    const resumo = document.getElementById('resumo-dia');
-    if (!resumo) return;
-    resumo.innerHTML = valores.length
-      ? `<p class="resumo-chamada"><span class="n-presente"><strong>${p}</strong> presentes</span>
-         <span class="n-falta"><strong>${f}</strong> faltas</span>
-         ${j ? `<span class="n-justificada"><strong>${j}</strong> justificadas</span>` : ''}</p>`
-      : '<p>A chamada desse dia ainda não foi feita.</p>';
-    document.getElementById('fazer').textContent = valores.length ? 'Ver ou corrigir a chamada' : 'Fazer chamada';
-    document.getElementById('excluir').hidden = !existe;
+  d.querySelector('[data-acao="desfazer"]')?.addEventListener('click', () => {
+    d.close();
+    gravar(removerExcecao(data), 'Cancelamento desfeito');
   });
 }
 
@@ -144,7 +127,7 @@ export function telaChamada({ params }) {
   alterado = false;
 
   app.innerHTML = `
-    <a href="#/dia/${data}" class="voltar">‹ Voltar</a>
+    <a href="#/" class="voltar">‹ Início</a>
     <div class="chamada-topo">
       <h1>${maiuscula(dataLonga(data))}</h1>
       <div class="contador" id="contador" aria-live="polite"></div>
@@ -232,7 +215,7 @@ export function telaChamada({ params }) {
     gravarChamada(registros, motivos, navigator.onLine
       ? 'Chamada salva com sucesso!'
       : 'Chamada guardada no celular. Envia sozinha quando a internet voltar.');
-    location.hash = `#/dia/${data}`;
+    location.hash = '#/';
   });
 
   document.getElementById('limpar').addEventListener('click', async () => {

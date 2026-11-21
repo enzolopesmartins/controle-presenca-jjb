@@ -1,7 +1,7 @@
 import { estado, cicloAtivo, listarPresencas } from '../dados.js';
 import { app, esc, janela } from '../ui.js';
 import { montarRelatorio, ordenar } from '../relatorio.js';
-import { montarCalendario } from './chamada.js';
+import { montarCalendario, janelaDoDia } from './chamada.js';
 import {
   hojeISO, temAula, proximaAula, dataLonga, dataCurta,
 } from '../datas.js';
@@ -24,7 +24,7 @@ export function telaInicio({ professor }) {
     <section class="cartao destaque-hoje">
       ${aulaHoje ? `
         <p class="rotulo">Hoje tem aula</p>
-        <a class="botao grande" href="#/dia/${hoje}">Chamada de hoje</a>
+        <button type="button" class="botao grande" id="chamada-hoje">Chamada de hoje</button>
         ${excecoes[hoje]?.tipo === 'extra' ? '<p class="suave">Dia extra.</p>' : ''}
       ` : `
         <p class="rotulo">Hoje não tem aula</p>
@@ -50,6 +50,7 @@ export function telaInicio({ professor }) {
     </section>`;
 
   montarCalendario(document.getElementById('calendario-inicio'));
+  document.getElementById('chamada-hoje')?.addEventListener('click', () => janelaDoDia(hoje));
 
   prepararSino(ciclo, hoje);
 }

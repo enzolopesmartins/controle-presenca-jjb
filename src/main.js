@@ -8,7 +8,7 @@ import { iniciarAtualizacao } from './atualizacao.js';
 import { telaLogin } from './telas/login.js';
 import { telaInicio } from './telas/inicio.js';
 import {
-  telaDia, telaChamada, chamadaComAlteracao,
+  telaChamada, chamadaComAlteracao,
 } from './telas/chamada.js';
 import { telaAlunos } from './telas/alunos.js';
 import { telaRelatorio } from './telas/relatorio.js';
@@ -18,9 +18,8 @@ import { telaCiclos } from './telas/ciclos.js';
 
 const ROTAS = {
   '': telaInicio,
-  // #/dia/AAAA-MM-DD = tela do dia; #/chamada/AAAA-MM-DD = lista com P e F
+  // #/chamada/AAAA-MM-DD = lista com P e F (o dia abre numa janela, pelo calendário)
   chamada: telaChamada,
-  dia: telaDia,
   alunos: telaAlunos,
   relatorio: telaRelatorio,
   mais: telaMais,
@@ -29,7 +28,7 @@ const ROTAS = {
 };
 
 // Qual item da barra de baixo fica aceso em cada tela
-const ABA = { dia: '', chamada: '', dias: 'mais', ciclos: 'mais' };
+const ABA = { chamada: '', dias: 'mais', ciclos: 'mais' };
 
 const barra = document.getElementById('barra');
 const topoData = document.getElementById('topo-data');

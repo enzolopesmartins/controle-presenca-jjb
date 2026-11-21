@@ -148,7 +148,7 @@ function avisos(rel) {
   const itens = [];
   if (rel.semChamada.length) {
     itens.push(`<li><strong>${rel.semChamada.length} ${rel.semChamada.length === 1 ? 'aula passada' : 'aulas passadas'} sem chamada:</strong>
-      ${rel.semChamada.slice(-6).map((d) => `<a href="#/dia/${d}">${dataCurta(d, { ano: false })}</a>`).join(', ')}
+      ${rel.semChamada.slice(-6).map((d) => `<a href="#/chamada/${d}">${dataCurta(d, { ano: false })}</a>`).join(', ')}
       ${rel.semChamada.length > 6 ? '…' : ''}</li>`);
   }
   return itens.length ? `<section class="cartao alerta-cartao"><ul class="avisos">${itens.join('')}</ul></section>` : '';
@@ -213,7 +213,7 @@ function abaPorAula(rel) {
   return `
     ${mediaDia ? `<p class="suave">Comparecimento por dia da semana: ${mediaDia}</p>` : ''}
     <ul class="lista-aulas">${[...rel.porAula].reverse().map((a) => `
-      <li><a href="#/dia/${a.data}">
+      <li><a href="#/chamada/${a.data}">
         <span class="la-data">${DIAS_CURTOS[diaSemana(a.data)]} ${dataCurta(a.data, { ano: false })}</span>
         <span class="la-numeros"><span class="n-presente"><strong>${a.presente}</strong> vieram</span>
           <span class="n-falta"><strong>${a.falta}</strong> faltaram</span></span>
