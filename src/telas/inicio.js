@@ -3,7 +3,7 @@ import { app, esc, janela } from '../ui.js';
 import { montarRelatorio, ordenar } from '../relatorio.js';
 import { montarCalendario } from './chamada.js';
 import {
-  hojeISO, temAula, proximaAula, dataLonga, dataCurta, aulasNoPeriodo, somarDias, INICIO_DO_SISTEMA,
+  hojeISO, temAula, proximaAula, dataLonga, dataCurta,
 } from '../datas.js';
 
 export function telaInicio({ professor }) {
@@ -36,8 +36,6 @@ export function telaInicio({ professor }) {
 
     <section class="cartao" id="calendario-inicio"></section>
 
-    <div id="pendentes"></div>
-
     <section class="cartao">
       <h2>Resumo</h2>
       <ul class="lista-simples">
@@ -53,36 +51,7 @@ export function telaInicio({ professor }) {
 
   montarCalendario(document.getElementById('calendario-inicio'));
 
-  avisarAulasSemChamada(ciclo, hoje);
   prepararSino(ciclo, hoje);
-}
-
-// Aulas passadas do ciclo (ou das últimas 4 semanas) sem nenhuma marcação, desde 01/11/2026
-async function avisarAulasSemChamada(ciclo, hoje) {
-  // Só a partir de quando o controle começou a valer (1º de novembro de 2026)
-  const base = ciclo?.inicio ?? somarDias(hoje, -28);
-  const inicio = base < INICIO_DO_SISTEMA ? INICIO_DO_SISTEMA : base;
-  const ontem = somarDias(hoje, -1);
-  if (inicio > ontem) return;
-  const previstas = aulasNoPeriodo(inicio, ontem, estado.diasPadrao, estado.excecoes);
-  if (!previstas.length) return;
-  try {
-    const feitas = new Set((await listarPresencas(inicio, ontem))
-      .filter((p) => Object.keys(p.registros || {}).length).map((p) => p.data));
-    const faltando = previstas.filter((d) => !feitas.has(d)).reverse();
-    const el = document.getElementById('pendentes');
-    if (!el || !faltando.length) return;
-    el.innerHTML = `
-      <section class="cartao alerta-cartao">
-        <h2>Aulas sem chamada</h2>
-        <p class="suave">Se não teve aula nesses dias, cancele em <a href="#/dias">Dias de aula</a>.</p>
-        <ul class="lista-links">${faltando.slice(0, 8).map((d) => `
-          <li><a href="#/dia/${d}">${dataLonga(d)}</a></li>`).join('')}</ul>
-        ${faltando.length > 8 ? `<p class="suave">E mais ${faltando.length - 8}.</p>` : ''}
-      </section>`;
-  } catch (e) {
-    console.error(e);
-  }
 }
 
 const SINO = `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
