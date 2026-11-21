@@ -97,6 +97,10 @@ export async function prepararPrimeiroUso() {
 // Sem internet, o Firebase guarda no aparelho e a promessa só termina quando envia.
 // Por isso as telas não esperam: o "estado" já se atualiza na hora.
 
+// Tutorial: fica marcado no banco quando o professor termina (vale em qualquer celular)
+export const tutorialFeito = async () => (await getDoc(doc(db, 'config', 'tutorial'))).data()?.feito === true;
+export const marcarTutorialFeito = () => setDoc(doc(db, 'config', 'tutorial'), { feito: true });
+
 export const salvarDiasPadrao = (diasPadrao) =>
   setDoc(doc(db, 'config', 'aulas'), { diasPadrao: [...diasPadrao].sort() });
 

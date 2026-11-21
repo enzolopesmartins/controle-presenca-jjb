@@ -1,12 +1,13 @@
 import './style.css';
 import {
-  aoMudarLogin, lerProfessor, ouvirEstado, pararEstado, prepararPrimeiroUso, aoMudarEstado, sair,
+  aoMudarLogin, lerProfessor, tutorialFeito, ouvirEstado, pararEstado, prepararPrimeiroUso, aoMudarEstado, sair,
 } from './dados.js';
 import { app, esc, mensagemErro } from './ui.js';
 import { hojeISO, dataLonga } from './datas.js';
 import { iniciarAtualizacao } from './atualizacao.js';
 import { telaLogin } from './telas/login.js';
 import { telaInicio } from './telas/inicio.js';
+import { abrirTutorial } from './tutorial-passos.js';
 import {
   telaChamada, chamadaComAlteracao,
 } from './telas/chamada.js';
@@ -116,6 +117,8 @@ aoMudarLogin(async (usuario) => {
     await ouvirEstado();
     await prepararPrimeiroUso().catch((e) => console.error(e));
     desenhar();
+    // Primeira vez nesta conta: tutorial obrigatório (se não der para ler o banco, não atrapalha)
+    if (!(await tutorialFeito().catch(() => true))) abrirTutorial();
   } catch (e) {
     console.error(e);
     app.innerHTML = `<section class="cartao"><h1>Não deu para abrir</h1><p>${esc(mensagemErro(e))}</p>

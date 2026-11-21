@@ -625,3 +625,55 @@ input::placeholder, textarea::placeholder { color: #9aa1ad; }
 
 /* Janela do dia (calendário): fazer chamada ou cancelar as aulas */
 .janela [data-acao] { margin-top: 10px; }
+
+/* ---------- Tutorial guiado: tudo escuro e embaçado, menos o destaque ---------- */
+.tut-veu {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(10, 10, 14, .62); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+}
+.tut-anel {
+  position: fixed; z-index: 901; pointer-events: none; border-radius: 12px;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 7px rgba(29, 78, 216, .5);
+  transition: left .25s, top .25s, width .25s, height .25s;
+}
+.tut-cartao {
+  position: fixed; z-index: 902; left: 50%; transform: translateX(-50%);
+  width: min(380px, calc(100vw - 24px)); max-height: 46vh; overflow: auto;
+  background: #fff; color: var(--texto); border-radius: 14px; padding: 14px 16px 12px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+}
+.tut-cartao.tut-meio { top: 50% !important; transform: translate(-50%, -50%); }
+.tut-cartao h2 { font-size: 1.08rem; margin: 2px 0 4px; }
+.tut-cartao p { margin: 0 0 8px; font-size: .95rem; line-height: 1.4; }
+.tut-contador { font-size: .75rem !important; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--destaque); }
+.tut-toque { font-weight: 700; color: var(--destaque); }
+.tut-botoes { display: flex; justify-content: space-between; gap: 10px; margin-top: 4px; }
+.tut-botoes .botao { min-height: 42px; padding: 8px 18px; }
+.tut-dica {
+  margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; font-size: .9rem; line-height: 1.35;
+  background: #eef3ff; border: 1px solid #c7d6fb; color: var(--texto);
+}
+.tut-dica b { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--destaque); }
+/* Durante o tutorial, a atualização do site não interrompe */
+.em-tutorial .toast { z-index: 950; }
+.tut-pular {
+  display: block; margin: 8px auto 0; padding: 6px 10px; background: none; border: 0; cursor: pointer;
+  font: inherit; font-size: .85rem; color: var(--suave); text-decoration: underline;
+}
+.tut-dica .tut-pular { display: inline; margin: 4px 0 0; padding: 0; }
+.lista-tutoriais { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 8px; }
+.lista-tutoriais button {
+  width: 100%; text-align: left; display: flex; flex-direction: column; gap: 2px; cursor: pointer;
+  background: #fff; border: 1px solid var(--borda); border-left: 5px solid var(--destaque); border-radius: 10px;
+  padding: 10px 12px; font: inherit; color: var(--texto);
+}
+.lista-tutoriais button small { color: var(--suave); font-size: .85rem; }
+/* Botão "?" Tutorial, ao lado do sininho na Início */
+.topo-botoes { display: flex; align-items: center; gap: 10px; }
+.ajuda {
+  width: 52px; height: 52px; flex: none; border-radius: 50%; padding: 0; cursor: pointer; font: inherit;
+  background: #fff; border: 1px solid var(--borda); color: var(--marca); box-shadow: var(--sombra);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
+}
+.ajuda b { font-size: 1.35rem; font-weight: 800; }
+.ajuda small { font-size: .55rem; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; margin-top: 1px; }

@@ -2,6 +2,7 @@ import { estado, cicloAtivo, listarPresencas } from '../dados.js';
 import { app, esc, janela } from '../ui.js';
 import { montarRelatorio, ordenar } from '../relatorio.js';
 import { montarCalendario, janelaDoDia } from './chamada.js';
+import { janelaTutoriais } from '../tutorial-passos.js';
 import {
   hojeISO, temAula, proximaAula, dataLonga, dataCurta,
 } from '../datas.js';
@@ -18,7 +19,10 @@ export function telaInicio({ professor }) {
   app.innerHTML = `
     <div class="titulo-acao">
       <h1>Olá${primeiroNome ? `, ${esc(primeiroNome)}` : ''}!</h1>
-      <button type="button" class="sino" id="sino" aria-label="Avisos de faltas">${SINO}<span class="sino-numero" id="sino-numero" hidden></span></button>
+      <div class="topo-botoes">
+        <button type="button" class="ajuda" id="ajuda" aria-label="Tutoriais"><b aria-hidden="true">?</b><small>Tutorial</small></button>
+        <button type="button" class="sino" id="sino" aria-label="Avisos de faltas">${SINO}<span class="sino-numero" id="sino-numero" hidden></span></button>
+      </div>
     </div>
 
     <section class="cartao destaque-hoje">
@@ -50,6 +54,7 @@ export function telaInicio({ professor }) {
     </section>`;
 
   montarCalendario(document.getElementById('calendario-inicio'));
+  document.getElementById('ajuda').addEventListener('click', janelaTutoriais);
   document.getElementById('chamada-hoje')?.addEventListener('click', () => janelaDoDia(hoje));
 
   prepararSino(ciclo, hoje);

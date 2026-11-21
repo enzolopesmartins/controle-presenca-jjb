@@ -38,9 +38,11 @@ service cloud.firestore {
 
     match /config/{id} {
       allow read: if ehProfessor();
-      allow create, update: if ehProfessor() && id == 'aulas' &&
-        novo().diasPadrao is list && novo().diasPadrao.size() <= 7 &&
-        novo().diasPadrao.hasOnly([0, 1, 2, 3, 4, 5, 6]);
+      allow create, update: if ehProfessor() && (
+        (id == 'aulas' && novo().diasPadrao is list && novo().diasPadrao.size() <= 7 &&
+          novo().diasPadrao.hasOnly([0, 1, 2, 3, 4, 5, 6])) ||
+        // tutorial feito: { feito: true }
+        (id == 'tutorial' && novo().keys().hasOnly(['feito']) && novo().feito is bool));
       allow delete: if false;
     }
 

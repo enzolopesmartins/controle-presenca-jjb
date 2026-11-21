@@ -133,3 +133,11 @@ test('dias de aula: extra, cancelada e desfazer', async () => {
   await assertSucceeds(setDoc(doc(db, 'config/aulas'), { diasPadrao: [1, 6] }));
   await assertFails(setDoc(doc(db, 'config/aulas'), { diasPadrao: [1, 9] }));
 });
+
+test('tutorial: só o professor marca como feito', async () => {
+  await assertSucceeds(setDoc(doc(prof(), 'config/tutorial'), { feito: true }));
+  await assertSucceeds(getDoc(doc(prof(), 'config/tutorial')));
+  await assertFails(setDoc(doc(prof(), 'config/tutorial'), { feito: 'sim' }));
+  await assertFails(setDoc(doc(prof(), 'config/tutorial'), { feito: true, extra: 1 }));
+  await assertFails(setDoc(doc(outro(), 'config/tutorial'), { feito: true }));
+});
